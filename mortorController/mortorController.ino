@@ -91,7 +91,6 @@ void loop() {
       rpiSerial.println("done");
     }
     else{
-      rpiSerial.flush();
       rpiSerial.println("error");
     }
   }

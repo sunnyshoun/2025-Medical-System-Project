@@ -14,17 +14,17 @@ title: Main flow
 ---
 flowchart TD
     set0((開始測試))
-    set1{{cur_degree=0.5, min_degree=-1}}
+    set1{{cur_degree=0.5, max_degree=-1}}
     act0{0.1 <= cur_degree <= 1.5 ?}
-    end1{min_degree < 0 ?}
+    end1{max_degree < 0 ?}
     act1[/顯示對應度數圖像，等待輸入/]
     act2{使用者是否看得清楚？}
-    act3{{min_degree=cur_degree, cur_degree++}}
-    act4{min_degree < 0 ?}
+    act3{{max_degree=cur_degree, cur_degree++}}
+    act4{max_degree < 0 ?}
     act5{{cur_degree--}}
-    end2([結束測試，return min_degree])
+    end2([結束測試，度數大於最高值])
     end3([結束測試，度數小於最低值])
-    end4([結束測試，return min_degree])
+    end4([結束測試，return max_degree])
     iter[下一輪測量]
     act3 --> iter
     set0 --> set1
