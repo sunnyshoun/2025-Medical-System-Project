@@ -1,16 +1,18 @@
-from .setting import *
+from ..setting import *
 import serial
 
-class VisionTest:
+
+class IVisionTest:
     cur_distance: float
     cur_degree: float
     max_degree = -1.0
     state = 0
 
-    ser = serial.Serial(**RPI_SERIAL)
-
     moving = False
     got_resp: bool = None
+
+class VisionTest(IVisionTest):
+    ser = serial.Serial(**RPI_SERIAL)
 
 class InterruptException(Exception):
     end: bool
