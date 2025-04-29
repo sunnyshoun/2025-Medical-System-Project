@@ -7,6 +7,9 @@ TEST_START_DISTANCE = 0.1
 
 LOGGER_FORMAT = "%(name)-11s:%(levelname)-7s: %(message)s"
 
+GPIO_SONIC_TRIGGER = 23
+GPIO_SONIC_ECHO = 24
+GPIO_SONIC_TIMEOUT = 0.04
 
 # === Define ===
 INTERRUPT_INST_SHOW_RESULT = 0

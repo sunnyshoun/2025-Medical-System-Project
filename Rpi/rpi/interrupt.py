@@ -17,7 +17,7 @@ class Interrupt:
         cls.logger.debug(f'Sorter got {ex.args}')
 
         test = ex.test
-        ser = test.ser
+        ser = test.res.ser
 
         if ex.args[0] == INTERRUPT_INST_SHOW_RESULT:
             cls.logger.debug('Show result')
@@ -39,7 +39,7 @@ class Interrupt:
             if resp == 'ok':
                 test.moving = True
                 test.cur_distance = round(target, 3) 
-                cls.logger.debug(f"cur_degree: {test.cur_degree}, cur_distance: {test.cur_distance}")
+                cls.logger.debug(f"Start move got \"ok\"")
             else:
                 raise ValueError(f'Unexpected response from start move: {resp}')
             
@@ -63,7 +63,7 @@ class Interrupt:
     def wait_mov(cls, test: VisionTest):
         cls.logger.debug(f"Wait moving to {test.cur_distance} m")
 
-        resp = test.ser.readline().decode().strip()
+        resp = test.res.ser.readline().decode().strip()
 
         if resp == 'done':
             test.moving = False
@@ -72,6 +72,12 @@ class Interrupt:
 
     @classmethod
     def show_result(cls, degree: float) -> None:
+        if abs(degree - INTERRUPT_RESULT_MIN < 0.1):
+            cls.logger.info('Test result: < 0.1')
+        elif abs(degree - INTERRUPT_RESULT_MAX < 0.1):
+            cls.logger.info('Test result: >= 1.5')
+        else:
+            cls.logger.info(f'Test result: degree')
 
         cls.logger.warning('`show_result()` Not implemented')
 

@@ -7,7 +7,7 @@ import logging, time, argparse
 logger = logging.getLogger('TestingFlow')
 
 def setup(t: VisionTest):
-    logger.debug('Setup section')
+    logger.info('Setup section')
     t.cur_degree = TEST_START_DEGREE
     t.cur_distance = TEST_START_DISTANCE
 
@@ -87,8 +87,8 @@ def loop(t: VisionTest):
 
     
 def end(t: VisionTest):
-    logger.debug('End section')
-    t.ser.close()
+    logger.info('End section')
+    t.close()
 
 def main(vision_test_obj: VisionTest):
     try:
