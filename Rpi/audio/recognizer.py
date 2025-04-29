@@ -41,9 +41,6 @@ def recognize_direct(recorder, recognizer: Recognizer):
 
         result = recognizer.recognize(wav_file).lower().strip('.!? ')
         if result != "<{silent}>":
-            print(recognizer.language.direct_mapping)
-            print(result)
-            print(len(result))
             direct_code = recognizer.language.direct_mapping.get(result)
             if direct_code is not None:
                 return direct_code
