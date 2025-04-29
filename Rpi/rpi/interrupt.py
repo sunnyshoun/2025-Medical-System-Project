@@ -17,14 +17,11 @@ class Interrupt:
         cls.logger.debug(f'Sorter got {ex.args}')
 
         test = ex.test
-        ser = test.ser
+        ser = test.res.ser
 
         if ex.args[0] == INTERRUPT_INST_SHOW_RESULT:
             cls.logger.debug('Show result')
             cls.show_result(ex.args[1])
-
-        elif ex.args[0] == INTERRUPT_INST_WAIT_MOV:
-            cls.wait_mov()
 
         elif ex.args[0] == INTERRUPT_INST_START_MOV:
             delta = ex.args[1]
@@ -37,9 +34,8 @@ class Interrupt:
 
             resp = ser.readline().decode().strip()
             if resp == 'ok':
-                test.moving = True
                 test.cur_distance = round(target, 3) 
-                cls.logger.debug(f"cur_degree: {test.cur_degree}, cur_distance: {test.cur_distance}")
+                cls.logger.debug(f"Start move got \"ok\"")
             else:
                 raise ValueError(f'Unexpected response from start move: {resp}')
             
@@ -50,10 +46,10 @@ class Interrupt:
             test.dir = random.randint(0, 3)
 
             result = paste_square_image_centered(img.rotate(test.dir * 90))
-            cls.show_img(result)
+            cls.show_img(test, result)
 
         elif ex.args[0] == INTERRUPT_INST_USR_RESP:
-            test.got_resp = cls.test_resp()
+            test.got_resp = cls.test_resp(test)
             cls.logger.info(f'Got test response: {test.got_resp}')
 
         else:
@@ -61,33 +57,46 @@ class Interrupt:
     
     @classmethod
     def wait_mov(cls, test: VisionTest):
-        cls.logger.debug(f"Wait moving to {test.cur_distance} m")
-
-        resp = test.ser.readline().decode().strip()
+        resp = test.res.ser.readline().decode().strip()
 
         if resp == 'done':
-            test.moving = False
+            cls.logger.info(f"Move done")
         else:
             raise ValueError(f'Unexpected response from wait move: {resp}')
 
     @classmethod
     def show_result(cls, degree: float) -> None:
+        if abs(degree - INTERRUPT_RESULT_MIN) < 0.1:
+            cls.logger.info('Test result: < 0.1')
+        elif abs(degree - INTERRUPT_RESULT_MAX) < 0.1:
+            cls.logger.info('Test result: >= 1.5')
+        else:
+            cls.logger.info(f'Test result: degree')
 
         cls.logger.warning('`show_result()` Not implemented')
 
     @classmethod
-    def show_img(cls, img: Image) -> None:
-
-        cls.logger.warning('`show_img()` Not implemented')
+    def show_img(cls, test: VisionTest, img: Image) -> None:
+        cls.logger.debug(f'Show image, dir: {test.dir}')
+        test.res.oled_img(img)
+        test.res.oled_display()
 
     @classmethod
-    def test_resp(cls) -> bool:
-        cls.logger.warning('`usr_resp()` Not implemented')
+    def test_resp(cls, test: VisionTest) -> bool:
+        while True:
+            try:
+                cls.logger.info(f'Waiting test resp')
+                return test.res.get_test_resp() == test.dir
 
-        return True
+            except ValueError as e:
+                cls.logger.warning(e.args[0])
     
     @classmethod
-    def lang_resp(cls) -> int:
-        cls.logger.warning('`lang_resp()` Not implemented')
+    def lang_resp(cls, test: VisionTest) -> int:
+        while True:
+            try:
+                cls.logger.info(f'Waiting language resp')
+                return test.res.get_lang_resp()
 
-        return 0
+            except ValueError as e:
+                cls.logger.warning(e.args[0])

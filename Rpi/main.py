@@ -7,13 +7,12 @@ import logging, time, argparse
 logger = logging.getLogger('TestingFlow')
 
 def setup(t: VisionTest):
-    logger.debug('Setup section')
+    logger.info('Setup section')
     t.cur_degree = TEST_START_DEGREE
     t.cur_distance = TEST_START_DISTANCE
 
     logger.debug('Choose language')
-    t.lang = 0
-    logger.warning('Language choosing has not implemented')
+    t.lang = Interrupt.lang_resp(t)
     logger.info(f'Set language to: {t.lang}')
 
 def loop(t: VisionTest):
@@ -29,7 +28,6 @@ def loop(t: VisionTest):
         if 0.1 <= t.cur_degree and t.cur_degree <= 1.5:
             t.state = _STATE_SHOW_IMG
             t.got_resp = None
-            t.moving = False
 
         else:
             if t.max_degree < 0:
@@ -46,22 +44,21 @@ def loop(t: VisionTest):
                                         end=True)
 
     elif t.state == _STATE_SHOW_IMG:
-        # 移動至對應位置
-        if t.moving:
-            raise InterruptException(INTERRUPT_INST_WAIT_MOV,
+        target = get_distance(t.cur_degree)
+        logger.debug(f'{abs(target - t.cur_distance)} m to target')
+        if abs(target - t.cur_distance) < 0.001:
+            # 不須移動
+            t.state = _STATE_INPUT
+            # 移動 target - t.cur_distance 公尺，換算毫米
+            raise InterruptException(INTERRUPT_INST_SHOW_IMG,
                                     test=t,
                                     end=False)
         else:
-            target = get_distance(t.cur_degree)
-            if abs(target - t.cur_distance) < 0.001:
-                # 不須移動
-                t.state = _STATE_INPUT
-            else:
-                # 移動 target - t.cur_distance 公尺，換算毫米
-                raise InterruptException(INTERRUPT_INST_START_MOV,
-                                        int((target - t.cur_distance) * 1000),
-                                        test=t,
-                                        end=False)
+            # 移動 target - t.cur_distance 公尺，換算毫米
+            raise InterruptException(INTERRUPT_INST_START_MOV,
+                                    int((target - t.cur_distance) * 1000),
+                                    test=t,
+                                    end=False)
     
     elif t.state == _STATE_INPUT:
         # 使用者是否看得清楚？
@@ -87,8 +84,8 @@ def loop(t: VisionTest):
 
     
 def end(t: VisionTest):
-    logger.debug('End section')
-    t.ser.close()
+    logger.info('End section')
+    t.close()
 
 def main(vision_test_obj: VisionTest):
     try:
