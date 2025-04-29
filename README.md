@@ -14,7 +14,8 @@ title: Main flow
 ---
 flowchart TD
     set0((開始測試))
-    set1{{cur_degree=0.5, max_degree=-1}}
+    set1{{cur_degree=0.5, max_degree=-1, lang=input}}
+    set2[/使用者選擇語言/]
     act0{0.1 <= cur_degree <= 1.5 ?}
     end1{max_degree < 0 ?}
     act1[/顯示對應度數圖像，等待輸入/]
@@ -27,7 +28,8 @@ flowchart TD
     end4([結束測試，return max_degree])
     iter[下一輪測量]
     act3 --> iter
-    set0 --> set1
+    set0 --> set2
+    set2 --> set1
     set1 --> act0
     act0 -- 否 --> end1
     end1 -- 否 --> end2
