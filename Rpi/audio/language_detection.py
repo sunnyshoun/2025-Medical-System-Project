@@ -1,6 +1,6 @@
 from typing import Optional
 import time
-from setting import LANG_JP, LANG_EN, LANG_ZH, LANG_TW, SUPPORTED_LANG_CODES
+from setting import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 from recognizer import StreamingRecognizer
 from recorder import AudioRecorder
 
@@ -78,12 +78,9 @@ def detect_language(audio_recorder: Optional[AudioRecorder] = None, timeout_seco
         audio_recorder = AudioRecorder()
         audio_recorder.start()
     
-    supported_languages = [
-        lang for lang in LANGUAGE_MODELS.values() if lang.lang_code in SUPPORTED_LANG_CODES
-    ]
     recognizers = [
         StreamingRecognizer(audio_recorder=audio_recorder, language=lang.api_lang)
-        for lang in supported_languages
+        for lang in LANGUAGE_MODELS.keys()
     ]
 
     # 語言名稱映射
@@ -103,7 +100,7 @@ def detect_language(audio_recorder: Optional[AudioRecorder] = None, timeout_seco
     start_time = time.time()
 
     while time.time() - start_time < timeout_seconds:
-        for lang, rec in zip(supported_languages, recognizers):
+        for lang, rec in zip(LANGUAGE_MODELS.keys(), recognizers):
             if rec.result is not None and rec.result != "<{silent}>":
                 # 檢查語音內容是否包含語言名稱
                 for name, lang_code in language_names.items():
