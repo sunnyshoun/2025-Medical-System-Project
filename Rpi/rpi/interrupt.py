@@ -1,9 +1,9 @@
-from .model import InterruptException
+from .model import InterruptException, VisionTest
 from setting import *
 from data.vision import get_thickness
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
 from PIL.Image import Image
-import logging, random, time
+import logging, random
 
 class Interrupt:
     """
@@ -12,63 +12,80 @@ class Interrupt:
 
     logger = logging.getLogger('Interrupt')
 
-    def sorter(self, ex: InterruptException):
-        self.logger.debug(f'Sorter got {ex.args}')
+    @classmethod
+    def sorter(cls, ex: InterruptException):
+        cls.logger.debug(f'Sorter got {ex.args}')
 
         test = ex.test
         ser = test.ser
 
         if ex.args[0] == INTERRUPT_INST_SHOW_RESULT:
-            self.logger.debug('Show result')
-            self.show_result(ex.args[1])
+            cls.logger.debug('Show result')
+            cls.show_result(ex.args[1])
 
         elif ex.args[0] == INTERRUPT_INST_WAIT_MOV:
-            self.logger.debug(f"Wait moving to distance: {test.cur_distance} m")
-
-            resp = ser.readline().decode().strip()
-
-            if resp == 'done':
-                test.moving = False
-            else:
-                raise ValueError(f'Unexpected response: {resp}')
+            cls.wait_mov()
 
         elif ex.args[0] == INTERRUPT_INST_START_MOV:
             delta = ex.args[1]
-            self.logger.debug(f"Start moving {delta} m to {test.cur_distance + (delta / 1000)}")
+            cls.logger.info(f"Start moving {delta} m to {test.cur_distance + (delta / 1000)}")
 
             msg = f'm{1 if delta > 0 else 0},{abs(delta)}\n'
-            self.logger.debug(f"sending: {msg.rstrip()}")
+            cls.logger.debug(f"sending: {msg.rstrip()}")
             ser.write(msg.encode())
 
             resp = ser.readline().decode().strip()
             if resp == 'ok':
                 test.moving = True
                 test.cur_distance += delta / 1000
-                self.logger.debug(f"cur_degree: {test.cur_degree}, cur_distance: {test.cur_distance}")
+                cls.logger.debug(f"cur_degree: {test.cur_degree}, cur_distance: {test.cur_distance}")
             else:
-                raise ValueError(f'Unexpected response: {resp}')
+                raise ValueError(f'Unexpected response from start move: {resp}')
+            
+            cls.wait_mov(test)
 
         elif ex.args[0] == INTERRUPT_INST_SHOW_IMG:
             img = draw_circle_with_right_opening(thickness=get_thickness(test.cur_degree))
-            result = paste_square_image_centered(img.rotate(random.choice([0, 90, 180, 270])))
-            self.show_img(result)
+            test.dir = random.randint(0, 3)
+
+            result = paste_square_image_centered(img.rotate(test.dir * 90))
+            cls.show_img(result)
 
         elif ex.args[0] == INTERRUPT_INST_USR_RESP:
-            test.got_resp = self.usr_resp()
+            test.got_resp = cls.test_resp()
 
         else:
             raise ValueError(f'Unexpected instruction code: {ex.args[0]}')
-        
-    def show_result(self, degree: float) -> None:
+    
+    @classmethod
+    def wait_mov(cls, test: VisionTest):
+        cls.logger.debug(f"Wait moving to {test.cur_distance} m")
 
-        self.logger.warning('`show_result()` Not implemented')
+        resp = test.ser.readline().decode().strip()
 
-    def show_img(self, img: Image) -> None:
+        if resp == 'done':
+            test.moving = False
+        else:
+            raise ValueError(f'Unexpected response from wait move: {resp}')
 
-        self.logger.warning('`show_img()` Not implemented')
+    @classmethod
+    def show_result(cls, degree: float) -> None:
 
-    def usr_resp(self) -> bool:
-        self.logger.warning('`usr_resp()` Not implemented')
+        cls.logger.warning('`show_result()` Not implemented')
 
-        time.sleep(1)
+    @classmethod
+    def show_img(cls, img: Image) -> None:
+
+        cls.logger.warning('`show_img()` Not implemented')
+
+    @classmethod
+    def test_resp(cls) -> bool:
+        cls.logger.warning('`usr_resp()` Not implemented')
+
         return True
+    
+    @classmethod
+    def lang_resp(cls) -> int:
+        cls.logger.warning('`lang_resp()` Not implemented')
+
+        return 0
