@@ -1,5 +1,5 @@
 from .model import InterruptException
-from ..setting import *
+from setting import *
 from data.vision import get_thickness
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
 from PIL.Image import Image

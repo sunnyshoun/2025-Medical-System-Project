@@ -1,5 +1,5 @@
-from ..rpi.model import IVisionTest
-from ..main import TestingFlow
+from rpi.model import IVisionTest
+from main import TestingFlow
 import serial, logging
 
 class SerialDummy(serial.Serial):

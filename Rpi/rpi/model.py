@@ -1,4 +1,4 @@
-from ..setting import *
+from setting import *
 import serial
 
 
