@@ -41,7 +41,10 @@ def recognize_direct(recorder, recognizer: Recognizer):
 
         result = recognizer.recognize(wav_file).lower().strip('.!? ')
         if result != "<{silent}>":
-            for word, code in recognizer.language.direct_mapping.items():
-                if word in result:
-                    return code
+            print(recognizer.language.direct_mapping)
+            print(result)
+            print(len(result))
+            direct_code = recognizer.language.direct_mapping.get(result)
+            if direct_code is not None:
+                return direct_code
             raise ValueError("辨識結果不在指定範圍內")

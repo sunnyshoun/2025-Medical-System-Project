@@ -75,14 +75,11 @@ class AudioRecorder:
                     break
 
         if is_speaking and speech_start and (time.time() - speech_start) >= min_speech_duration:
-            file_path = os.path.join(self.audio_dir, f"record_{int(time.time())}.wav")
-            try:
-                with wave.open(file_path, 'wb') as wf:
-                    wf.setnchannels(1)
-                    wf.setsampwidth(self.audio_interface.get_sample_size(pyaudio.paInt16))
-                    wf.setframerate(self.rate)
-                    wf.writeframes(b''.join(frames))
-                return file_path
-            except Exception as e:
-                print(f"無法儲存音訊檔案：{e}")
+            file_path = os.path.join(self.audio_dir, "record.wav")
+            with wave.open(file_path, 'wb') as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(self.audio_interface.get_sample_size(pyaudio.paInt16))
+                wf.setframerate(self.rate)
+                wf.writeframes(b''.join(frames))
+            return file_path
         return None

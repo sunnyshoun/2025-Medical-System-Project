@@ -6,7 +6,7 @@ from setting import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 
 
 LANGUAGE_MODELS = {
-    "ja": Language(LANG_JP, "Japanese", {"うえ": 3, "上": 3, "した": 2, "下": 2, "左": 1, "右": 0}),
+    "ja": Language(LANG_JP, "Japanese", {"うえ": 3, "上": 3, "した": 2, "下": 2, "左": 1, "右": 0, "みぎ": 0}),
     "en": Language(LANG_EN, "English", {"up": 3, "down": 2, "left": 1, "right": 0}),
     "zh-TW": Language(LANG_ZH, "STT for course", {"上": 3, "上面": 3, "下": 2, "下面": 2, "左": 1, "左邊": 1, "右": 0, "右邊": 0, "yo": 0}),
     "ta": Language(LANG_TW, "TA Phoneme", {
@@ -30,7 +30,7 @@ def detect_language(recorder: AudioRecorder, timeout_seconds: float = 30.0) -> L
         if not wav_file:
             continue
 
-        for lang_code, lang in LANGUAGE_MODELS.items():
+        for lang in LANGUAGE_MODELS.values():
             result = Recognizer(lang).recognize(wav_file)
             if result and result != "<{silent}>":
                 for keyword, detected_code in language_keywords.items():
