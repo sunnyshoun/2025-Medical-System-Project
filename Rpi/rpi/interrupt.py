@@ -28,7 +28,8 @@ class Interrupt:
 
         elif ex.args[0] == INTERRUPT_INST_START_MOV:
             delta = ex.args[1]
-            cls.logger.info(f"Start moving {delta} m to {test.cur_distance + (delta / 1000)}")
+            target = test.cur_distance + (delta / 1000)
+            cls.logger.info(f"Start moving {delta} mm to {round(target, 3)}")
 
             msg = f'm{1 if delta > 0 else 0},{abs(delta)}\n'
             cls.logger.debug(f"sending: {msg.rstrip()}")
@@ -37,7 +38,7 @@ class Interrupt:
             resp = ser.readline().decode().strip()
             if resp == 'ok':
                 test.moving = True
-                test.cur_distance += delta / 1000
+                test.cur_distance = round(target, 3) 
                 cls.logger.debug(f"cur_degree: {test.cur_degree}, cur_distance: {test.cur_distance}")
             else:
                 raise ValueError(f'Unexpected response from start move: {resp}')
@@ -53,6 +54,7 @@ class Interrupt:
 
         elif ex.args[0] == INTERRUPT_INST_USR_RESP:
             test.got_resp = cls.test_resp()
+            cls.logger.info(f'Got test response: {test.got_resp}')
 
         else:
             raise ValueError(f'Unexpected instruction code: {ex.args[0]}')
