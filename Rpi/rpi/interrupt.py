@@ -28,7 +28,7 @@ class Interrupt:
             target = test.cur_distance + (delta / 1000)
             cls.logger.info(f"Start moving {delta} mm to {round(target, 3)}")
 
-            msg = f'm{1 if delta > 0 else 0},{abs(delta)}\n'
+            msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
             cls.logger.debug(f"sending: {msg.rstrip()}")
             ser.write(msg.encode())
 

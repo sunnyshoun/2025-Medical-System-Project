@@ -9,7 +9,12 @@ logger = logging.getLogger('TestingFlow')
 def setup(t: VisionTest):
     logger.info('Setup section')
     t.cur_degree = TEST_START_DEGREE
-    t.cur_distance = TEST_START_DISTANCE
+    t.cur_distance = -1.0
+    
+    while t.cur_distance < 0:
+        t.cur_distance = t.res.get_distance()
+
+    logger.info(f'Set cur_distance to {t.cur_distance}')
 
     logger.debug('Choose language')
     t.lang = Interrupt.lang_resp(t)
@@ -112,8 +117,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument( '-log',
                         '--loglevel',
-                        default='warning',
-                        help='Provide logging level. Example --loglevel debug, default=warning' )
+                        default='info',
+                        help='Provide logging level. Example --loglevel debug, default=info' )
 
     args = parser.parse_args()
 

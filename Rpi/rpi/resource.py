@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 from setting import *
-from model import IResource
+from .model import IResource
 from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
@@ -50,7 +50,7 @@ class Resource(IResource):
 
         try:
             time_elapsed = end - start
-            distance = (time_elapsed * 34300) / 2
+            distance = (time_elapsed * SONIC_SPEED) / 2
             return distance
         except:
             return -1.0  # error value if timing failed
@@ -62,7 +62,7 @@ class Resource(IResource):
         self.disp.clear()
 
     def oled_img(self, img: Image):
-        self.disp.image(img)
+        self.disp.image(img.convert('1'))
     
     def get_test_resp(self, lang: int):
         recorder = AudioRecorder(device_index=11)
