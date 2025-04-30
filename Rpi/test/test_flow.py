@@ -19,23 +19,32 @@ class SerialDummy(serial.Serial):
 class ResourceDummy(IResource):
     def __init__(self):
         self.ser = SerialDummy()
+        self.logger = logging.getLogger('ResourceDummy')
     
     def get_distance(self) -> float:
-        logging.getLogger('ResourceDummy').debug(f'Assume distance {TEST_START_DISTANCE}')
+        self.logger.debug(f'Assume distance {TEST_START_DISTANCE}')
         return TEST_START_DISTANCE
     
     def oled_display(self):
-        logging.getLogger('ResourceDummy').debug('oled_display')
+        self.logger.debug('oled_display')
     
     def oled_clear(self):
-        logging.getLogger('ResourceDummy').debug('oled_clear')
+        self.logger.debug('oled_clear')
 
     def oled_img(self, img):
-        logging.getLogger('ResourceDummy').debug('oled_img')
+        self.logger.debug('oled_img')
     
     def close(self):
-        logging.getLogger('ResourceDummy').debug('Close serial')
+        self.logger.debug('Close serial')
         self.ser.close()
+
+    def get_test_resp(self) -> int:
+        self.logger.debug('get_test_resp, assuming resp = 0')
+        return 0
+
+    def get_lang_resp(self) -> int:
+        self.logger.debug('get_lang_resp, assuming resp = 0')
+        return 0
 
 
 logging.basicConfig(level='DEBUG',

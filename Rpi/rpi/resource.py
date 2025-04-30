@@ -1,11 +1,15 @@
 import RPi.GPIO as GPIO
 from setting import *
 from model import IResource
-import time, Adafruit_SSD1306, serial
+from audio.recorder import AudioRecorder
+from audio.recognizer import Recognizer, recognize_direct
+from audio.language_detection import detect_language
+import time, Adafruit_SSD1306, serial, logging
 from PIL.Image import Image
 
 class Resource(IResource):
     disp: Adafruit_SSD1306.SSD1306_128_64
+    logger = logging.getLogger('Resource')
 
     def __init__(self):
         self.disp = Adafruit_SSD1306.SSD1306_128_64(rst=None)
@@ -59,3 +63,30 @@ class Resource(IResource):
 
     def oled_img(self, img: Image):
         self.disp.image(img)
+    
+    def get_test_resp(self, lang: int):
+        recorder = AudioRecorder(device_index=11)
+        recognizer = Recognizer(lang)
+        try:
+            while True:
+                try:
+                    command = recognize_direct(recorder, recognizer)
+                    break
+                except ValueError:
+                    self.logger.info("辨識失敗，請再說一次")
+        finally:
+            recorder.stop()
+        return command
+                    
+    def get_lang_resp(self):
+        recorder = AudioRecorder(device_index=11)
+        try:
+            while True:
+                try:
+                    user_lang = detect_language(recorder)
+                    break
+                except TimeoutError:
+                    self.logger.info("未收到使用者語音，請再試一次")
+        finally:
+            recorder.stop()
+        return user_lang

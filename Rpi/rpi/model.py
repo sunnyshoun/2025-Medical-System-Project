@@ -1,27 +1,33 @@
 from setting import *
-import serial, logging
+import serial
 from PIL.Image import Image
 
 class IResource:
     ser: serial.Serial
 
     def __init__(self):
-        logging.getLogger('IResource').error('Calling the interface method `__init__()`')
+        raise NotImplementedError('Calling the interface method `__init__()`')
     
     def get_distance(self) -> float:
-        logging.getLogger('IResource').error('Calling the interface method `get_distance()`')
+        raise NotImplementedError('Calling the interface method `get_distance()`')
     
     def oled_display(self):
-        logging.getLogger('IResource').error('Calling the interface method `oled_display()`')
+        raise NotImplementedError('Calling the interface method `oled_display()`')
     
     def oled_clear(self):
-        logging.getLogger('IResource').error('Calling the interface method `oled_clear()`')
+        raise NotImplementedError('Calling the interface method `oled_clear()`')
 
     def oled_img(self, img: Image):
-        logging.getLogger('IResource').error('Calling the interface method `oled_img()`')
+        raise NotImplementedError('Calling the interface method `oled_img()`')
     
     def close():
-        logging.getLogger('IResource').error('Calling the interface method `close()`')
+        raise NotImplementedError('Calling the interface method `close()`')
+
+    def get_test_resp(self) -> int:
+        raise NotImplementedError('Calling the interface method `get_test_resp()`')
+
+    def get_lang_resp(self) -> int:
+        raise NotImplementedError('Calling the interface method `get_lang_resp()`')
 
 class VisionTest:
     cur_distance: float
@@ -32,14 +38,12 @@ class VisionTest:
     lang: int
     res: IResource
 
-    moving: bool
     got_resp: bool
 
     def __init__(self, res: IResource):
         self.max_degree = -1.0
         self.state = 0
 
-        self.moving = False
         self.got_resp = None
         self.dir = 0
         self.res = res
