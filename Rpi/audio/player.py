@@ -1,6 +1,5 @@
-import os
-import time
 import subprocess
+import os
 
 class AudioPlayer:
     def __init__(self, volume:int = 80):
@@ -14,7 +13,6 @@ class AudioPlayer:
         :param file_name: 音訊檔名 (e.g. hello.wav)
         :param language: 語言資料夾名稱 (e.g. en, zh)
         """
-        time.sleep(wait_time)
         self.stop()  # 如果之前有播放，先終止
 
         audio_path = os.path.join(self.base_folder, language, file_name)

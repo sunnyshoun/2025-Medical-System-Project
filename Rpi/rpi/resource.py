@@ -84,7 +84,7 @@ class Resource(IResource):
                     
     def get_lang_resp(self) -> Language:
         recorder = AudioRecorder(device_index=11)
-        audio_player.play_async(ASK_LANG_FILE, 'all', 0.5)
+        audio_player.play_async(ASK_LANG_FILE, 'all')
         try:
             while True:
                 try:
