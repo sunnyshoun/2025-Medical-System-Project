@@ -1,5 +1,6 @@
-import subprocess
 import os
+import time
+import subprocess
 
 class AudioPlayer:
     def __init__(self, volume:int = 80):
@@ -7,12 +8,13 @@ class AudioPlayer:
         self.base_folder = os.path.join(os.path.dirname(__file__), "audioFiles")
         self.process = None
 
-    def play_async(self, file_name, language):
+    def play_async(self, file_name:str, language:str, wait_time:int = 0):
         """
         非同步播放指定語言資料夾下的音訊檔案。
         :param file_name: 音訊檔名 (e.g. hello.wav)
         :param language: 語言資料夾名稱 (e.g. en, zh)
         """
+        time.sleep(wait_time)
         self.stop()  # 如果之前有播放，先終止
 
         audio_path = os.path.join(self.base_folder, language, file_name)
