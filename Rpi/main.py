@@ -2,6 +2,7 @@ from rpi.model import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
 from setting import *
 from data import vision
+from audio.player import audio_player
 import logging, time
 
 logger = logging.getLogger('TestingFlow')
@@ -20,6 +21,7 @@ def setup(t: VisionTest):
     logger.debug('Choose language')
     t.lang = Interrupt.lang_resp(t)
     logger.info(f'Set language to: {t.lang.lang_code}')
+    audio_player.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
 
 def loop(t: VisionTest):
     # === define ===

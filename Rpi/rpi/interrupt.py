@@ -35,7 +35,6 @@ class Interrupt:
             test.res.oled_clear()
             test.res.oled_display()
 
-            audio_player.play_async(TEST_INTRO_FILE, LANGUAGES[test.lang.lang_code])
             msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
             cls.logger.debug(f"sending: {msg.rstrip()}")
             ser.write(msg.encode())
@@ -95,13 +94,13 @@ class Interrupt:
         draw.text((5, 22), f'{d:0.1f}', font=font, fill = 255)
         test.res.oled_img(image)
         test.res.oled_display()
+        audio_player.play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
 
     @classmethod
     def show_img(cls, test: VisionTest, img: Image) -> None:
         cls.logger.info(f'Show image, dir: {test.dir}')
         test.res.oled_img(img)
         test.res.oled_display()
-        audio_player.play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
 
     @classmethod
     def test_resp(cls, test: VisionTest) -> bool:
