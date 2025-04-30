@@ -1,0 +1,8 @@
+certifi==2025.4.26
+charset-normalizer==3.4.1
+idna==3.10
+numpy==2.2.5
+PyAudio==0.2.14
+requests==2.32.3
+urllib3==2.4.0
+webrtcvad==2.0.10

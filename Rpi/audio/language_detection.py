@@ -6,12 +6,12 @@ from setting import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 
 
 LANGUAGE_MODELS = {
-    "ja": Language(LANG_JP, "Japanese", {"うえ": 1, "上": 1, "した": 3, "下": 3, "左": 0, "右": 2, "みぎ": 2}),
-    "en": Language(LANG_EN, "English", {"up": 1, "down": 3, "left": 0, "right": 2}),
-    "zh-TW": Language(LANG_ZH, "STT for course", {"上": 1, "上面": 1, "下": 3, "下面": 3, "左": 0, "左邊": 0, "右": 2, "右邊": 2, "yo": 2}),
+    "ja": Language(LANG_JP, "Japanese", {"うえ": 1, "上": 1, "した": 3, "下": 3, "左": 2, "右": 0, "みぎ": 0}),
+    "en": Language(LANG_EN, "English", {"up": 1, "down": 3, "left": 2, "right": 0}),
+    "zh-TW": Language(LANG_ZH, "STT for course", {"上": 1, "上面": 1, "下": 3, "下面": 3, "左": 2, "左邊": 2, "右": 0, "右邊": 0, "yo": 0}),
     "ta": Language(LANG_TW, "TA Phoneme", {
         "t-ing* p-ing*": 1, "t-ing* k-uan*": 1, "e* b-in*": 3, "e* kh-a*": 3,
-        "t-o* p-ing*": 0, "t-o* tsh-iu* p-ing*": 0, "ts-iann* tsh-iu* p-ing*": 2, "ts-iann* p-ing*": 2
+        "t-o* p-ing*": 2, "t-o* tsh-iu* p-ing*": 2, "ts-iann* tsh-iu* p-ing*": 0, "ts-iann* p-ing*": 0
     })
 }
 
