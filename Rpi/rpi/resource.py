@@ -67,7 +67,7 @@ class Resource(IResource):
     def oled_img(self, img: Image):
         self.disp.image(img.convert('1'))
     
-    def get_test_resp(self, lang: int):
+    def get_test_resp(self, lang: Language):
         recorder = AudioRecorder(device_index=11)
         recognizer = Recognizer(lang)
         try:
@@ -76,6 +76,7 @@ class Resource(IResource):
                     command = recognize_direct(recorder, recognizer)
                     break
                 except ValueError:
+                    AudioPlayer().play_async(RECOGNITION_FAIL_FILE, LANGUAGES[lang.lang_code])
                     self.logger.info("辨識失敗，請再說一次")
         finally:
             recorder.stop()
@@ -92,6 +93,7 @@ class Resource(IResource):
                     player.stop()
                     break
                 except TimeoutError:
+                    player.play_async(ASK_LANG_FILE, 'all')
                     self.logger.info("未收到使用者語音，請再試一次")
         finally:
             recorder.stop()
