@@ -9,7 +9,6 @@ logger = logging.getLogger('TestingFlow')
 logger.setLevel(LOGGER_LEVEL)
 
 def setup(t: VisionTest):
-    audio_player.play_async(BEEP_FILE, 'all')
     logger.info('Setup section')
     t.cur_degree = TEST_START_DEGREE
     t.cur_distance = -1.0
