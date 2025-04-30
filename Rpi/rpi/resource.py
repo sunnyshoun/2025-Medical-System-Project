@@ -1,0 +1,92 @@
+import RPi.GPIO as GPIO
+from setting import *
+from .model import IResource
+from audio.recorder import AudioRecorder
+from audio.recognizer import Recognizer, recognize_direct
+from audio.language_detection import detect_language
+import time, Adafruit_SSD1306, serial, logging
+from PIL.Image import Image
+
+class Resource(IResource):
+    disp: Adafruit_SSD1306.SSD1306_128_64
+    logger = logging.getLogger('Resource')
+
+    def __init__(self):
+        self.disp = Adafruit_SSD1306.SSD1306_128_64(rst=None)
+        self.disp.begin()
+        self.disp.clear()
+        self.disp.display()
+
+        self.ser = serial.Serial(**RPI_SERIAL)
+
+    def close(self):
+        self.ser.close()
+
+    def get_distance(self) -> float:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(GPIO_SONIC_TRIGGER, GPIO.OUT)
+        GPIO.setup(GPIO_SONIC_ECHO, GPIO.IN)
+
+        # Ensure trigger is low
+        GPIO.output(GPIO_SONIC_TRIGGER, False)
+        time.sleep(0.05)
+
+        # Send 10us pulse
+        GPIO.output(GPIO_SONIC_TRIGGER, True)
+        time.sleep(0.00001)
+        GPIO.output(GPIO_SONIC_TRIGGER, False)
+
+        # Wait for echo to go high
+        start_time = time.time()
+        while GPIO.input(GPIO_SONIC_ECHO) == 0 and time.time() - start_time < GPIO_SONIC_TIMEOUT:
+            start = time.time()
+
+        # Wait for echo to go low
+        start_time = time.time()
+        while GPIO.input(GPIO_SONIC_ECHO) == 1 and time.time() - start_time < GPIO_SONIC_TIMEOUT:
+            end = time.time()
+
+        GPIO.cleanup()
+
+        try:
+            time_elapsed = end - start
+            distance = (time_elapsed * SONIC_SPEED) / 2
+            return distance
+        except:
+            return -1.0  # error value if timing failed
+    
+    def oled_display(self):
+        self.disp.display()
+    
+    def oled_clear(self):
+        self.disp.clear()
+
+    def oled_img(self, img: Image):
+        self.disp.image(img.convert('1'))
+    
+    def get_test_resp(self, lang: int):
+        recorder = AudioRecorder(device_index=11)
+        recognizer = Recognizer(lang)
+        try:
+            while True:
+                try:
+                    command = recognize_direct(recorder, recognizer)
+                    break
+                except ValueError:
+                    self.logger.info("辨識失敗，請再說一次")
+        finally:
+            recorder.stop()
+        return command
+                    
+    def get_lang_resp(self):
+        recorder = AudioRecorder(device_index=11)
+        try:
+            while True:
+                try:
+                    user_lang = detect_language(recorder)
+                    break
+                except TimeoutError:
+                    self.logger.info("未收到使用者語音，請再試一次")
+        finally:
+            recorder.stop()
+        return user_lang
