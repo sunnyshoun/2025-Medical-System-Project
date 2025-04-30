@@ -2,7 +2,8 @@ import subprocess
 import os
 
 class AudioPlayer:
-    def __init__(self):
+    def __init__(self, volume:int = 80):
+        subprocess.run(["pactl", "set-sink-volume", "bluez_output.1F_3C_34_87_C7_CF.1", f"{volume}%"], check=True)
         self.base_folder = os.path.join(os.path.dirname(__file__), "audioFiles")
         self.process = None
 

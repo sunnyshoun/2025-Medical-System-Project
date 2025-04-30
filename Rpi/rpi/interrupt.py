@@ -1,8 +1,10 @@
 from .model import InterruptException, VisionTest
+from audio.classes import Language
 from setting import *
-from data.vision import get_thickness
+from data import vision
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
-from PIL.Image import Image
+from PIL.Image import Image, new
+from PIL import ImageDraw, ImageFont
 import logging, random
 
 class Interrupt:
@@ -22,12 +24,15 @@ class Interrupt:
 
         if ex.args[0] == INTERRUPT_INST_SHOW_RESULT:
             cls.logger.debug('Show result')
-            cls.show_result(ex.args[1])
+            cls.show_result(test, ex.args[1])
 
         elif ex.args[0] == INTERRUPT_INST_START_MOV:
             delta = ex.args[1]
             target = test.cur_distance + (delta / 1000)
             cls.logger.info(f"Start moving {delta} mm to {round(target, 3)}")
+
+            test.res.oled_clear()
+            test.res.oled_display()
 
             msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
             cls.logger.debug(f"sending: {msg.rstrip()}")
@@ -43,7 +48,7 @@ class Interrupt:
             cls.wait_mov(test)
 
         elif ex.args[0] == INTERRUPT_INST_SHOW_IMG:
-            img = draw_circle_with_right_opening(thickness=get_thickness(test.cur_degree))
+            img = draw_circle_with_right_opening(thickness=vision.thickness[int(test.cur_degree * 10) - 1])
             test.dir = random.randint(0, 3)
             cls.logger.debug(f"D: {test.dir}")
 
@@ -67,19 +72,30 @@ class Interrupt:
             raise ValueError(f'Unexpected response from wait move: {resp}')
 
     @classmethod
-    def show_result(cls, degree: float) -> None:
+    def show_result(cls, test: VisionTest, degree: float) -> None:
         if abs(degree - INTERRUPT_RESULT_MIN) < 0.1:
             cls.logger.info('Test result: < 0.1')
+            d = 0.0
         elif abs(degree - INTERRUPT_RESULT_MAX) < 0.1:
             cls.logger.info('Test result: >= 1.5')
+            d = 1.6
         else:
             cls.logger.info(f'Test result: degree')
+            d = degree
 
-        cls.logger.warning('`show_result()` Not implemented')
+        image = new('1', (128, 64))
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype(**RESULT_FONT)
+
+        draw.rectangle((0, 0, 128, 64), outline=0, fill=0)
+        draw.text((0, 0), RESULT_STRS[test.lang.lang_code], font=font, fill=255)
+        draw.text((5, 22), f'{d:0.1f}', font=font, fill = 255)
+        test.res.oled_img(image)
+        test.res.oled_display()
 
     @classmethod
     def show_img(cls, test: VisionTest, img: Image) -> None:
-        cls.logger.debug(f'Show image, dir: {test.dir}')
+        cls.logger.info(f'Show image, dir: {test.dir}')
         test.res.oled_img(img)
         test.res.oled_display()
 
@@ -88,13 +104,15 @@ class Interrupt:
         while True:
             try:
                 cls.logger.info(f'Waiting test resp')
-                return test.res.get_test_resp(test.lang) == test.dir
+                res = test.res.get_test_resp(test.lang)
+                cls.logger.info(f'Got response: {res}')
+                return  res == test.dir
 
             except ValueError as e:
                 cls.logger.warning(e.args[0])
     
     @classmethod
-    def lang_resp(cls, test: VisionTest) -> int:
+    def lang_resp(cls, test: VisionTest) -> Language:
         while True:
             try:
                 cls.logger.info(f'Waiting language resp')

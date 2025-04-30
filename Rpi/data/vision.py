@@ -46,15 +46,3 @@ distance = [
     2.220976691,
     2.379617888
 ]
-
-def get_thickness(degree: float):
-    k = int((degree-0.1)*10)
-    if k < 0 or k > 14:
-        raise ValueError(f"Invalid degree: {degree}")
-    return thickness[k]
-
-def get_distance(degree: float):
-    k = int((degree-0.1)*10)
-    if k < 0 or k > 14:
-        raise ValueError(f"Invalid degree: {degree}")
-    return distance[k]

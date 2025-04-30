@@ -5,6 +5,7 @@ from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
 from audio.player import AudioPlayer
+from audio.classes import Language
 import time, Adafruit_SSD1306, serial, logging
 from PIL.Image import Image
 
@@ -80,7 +81,7 @@ class Resource(IResource):
             recorder.stop()
         return command
                     
-    def get_lang_resp(self):
+    def get_lang_resp(self) -> Language:
         recorder = AudioRecorder(device_index=11)
         player = AudioPlayer()
         player.play_async(ASK_LANG_FILE, 'all')

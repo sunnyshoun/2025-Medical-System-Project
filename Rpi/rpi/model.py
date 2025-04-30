@@ -1,4 +1,5 @@
 from setting import *
+from audio.classes import Language
 import serial
 from PIL.Image import Image
 
@@ -26,7 +27,7 @@ class IResource:
     def get_test_resp(self, lang: int) -> int:
         raise NotImplementedError('Calling the interface method `get_test_resp()`')
 
-    def get_lang_resp(self) -> int:
+    def get_lang_resp(self) -> Language:
         raise NotImplementedError('Calling the interface method `get_lang_resp()`')
 
 class VisionTest:
@@ -35,7 +36,7 @@ class VisionTest:
     max_degree: float
     state: int
     dir: int
-    lang: int
+    lang: Language
     res: IResource
 
     got_resp: bool

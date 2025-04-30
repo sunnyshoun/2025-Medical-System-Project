@@ -1,8 +1,7 @@
 from rpi.model import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
-from rpi.resource import Resource
 from setting import *
-from data.vision import get_distance
+from data import vision
 import logging, time
 
 logger = logging.getLogger('TestingFlow')
@@ -20,7 +19,7 @@ def setup(t: VisionTest):
 
     logger.debug('Choose language')
     t.lang = Interrupt.lang_resp(t)
-    logger.info(f'Set language to: {t.lang}')
+    logger.info(f'Set language to: {t.lang.lang_code}')
 
 def loop(t: VisionTest):
     # === define ===
@@ -51,7 +50,7 @@ def loop(t: VisionTest):
                                         end=True)
 
     elif t.state == _STATE_SHOW_IMG:
-        target = get_distance(t.cur_degree)
+        target = vision.distance[int(t.cur_degree * 10) - 1]
         logger.debug(f'{abs(target - t.cur_distance)} m to target')
         if abs(target - t.cur_distance) < 0.001:
             # 不須移動
@@ -93,6 +92,7 @@ def loop(t: VisionTest):
 def end(t: VisionTest):
     logger.info('End section')
     t.close()
+    time.sleep(10)
     t.res.oled_clear()
     t.res.oled_display()
 
@@ -118,6 +118,8 @@ def main(vision_test_obj: VisionTest):
         end(vision_test_obj)
 
 if __name__ == '__main__':
+
+    from rpi.resource import Resource
 
     logging.basicConfig(format=LOGGER_FORMAT)
 

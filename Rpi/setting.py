@@ -15,6 +15,15 @@ GPIO_SONIC_TIMEOUT = 0.04
 
 SONIC_SPEED = 343 # m/s
 
+RESULT_STRS = [
+    '您的視力: ',
+    '恁ㄟ視力: ',
+    'Your vision: ',
+    'あなたの視力: '
+]
+RESULT_FONT = {'font': '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', 'size': 20}
+ 
+
 # === Define ===
 INTERRUPT_INST_SHOW_RESULT = 0
 INTERRUPT_INST_START_MOV = 2

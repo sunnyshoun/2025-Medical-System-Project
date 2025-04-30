@@ -4,7 +4,31 @@ import wave
 import pyaudio
 import webrtcvad
 from typing import Optional
+import contextlib
+import sys
+import ctypes
+import contextlib
 
+@contextlib.contextmanager
+def suppress_alsa_errors():
+    """Temporarily suppress ALSA (and other C library) stderr output."""
+    try:
+        # get C stderr
+        libc = ctypes.CDLL(None)
+        c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
+
+        # flush and redirect stderr to /dev/null
+        sys.stderr.flush()
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        saved_stderr_fd = os.dup(2)
+        os.dup2(devnull, 2)
+
+        yield
+
+    finally:
+        # restore stderr
+        os.dup2(saved_stderr_fd, 2)
+        os.close(devnull)
 
 class AudioRecorder:
     def __init__(self, device_index: int = 11, rate: int = 16000, frame_duration: int = 30, vad_mode: int = 3):
@@ -17,16 +41,16 @@ class AudioRecorder:
         os.makedirs(self.audio_dir, exist_ok=True)
 
         self.vad = webrtcvad.Vad(vad_mode)
-        self.audio_interface = pyaudio.PyAudio()
-
-        self.stream = self.audio_interface.open(
-            format=pyaudio.paInt16,
-            channels=1,
-            rate=self.rate,
-            input=True,
-            input_device_index=self.device_index,
-            frames_per_buffer=self.frame_size
-        )
+        with suppress_alsa_errors():
+            self.audio_interface = pyaudio.PyAudio()
+            self.stream = self.audio_interface.open(
+                format=pyaudio.paInt16,
+                channels=1,
+                rate=self.rate,
+                input=True,
+                input_device_index=self.device_index,
+                frames_per_buffer=self.frame_size
+            )
 
     def start(self):
         if not self.stream.is_active():
