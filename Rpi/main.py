@@ -1,10 +1,12 @@
 from rpi.model import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
+from rpi.resource import Resource
 from setting import *
 from data.vision import get_distance
-import logging, time, argparse
+import logging, time
 
 logger = logging.getLogger('TestingFlow')
+logger.setLevel(LOGGER_LEVEL)
 
 def setup(t: VisionTest):
     logger.info('Setup section')
@@ -91,6 +93,8 @@ def loop(t: VisionTest):
 def end(t: VisionTest):
     logger.info('End section')
     t.close()
+    t.res.oled_clear()
+    t.res.oled_display()
 
 def main(vision_test_obj: VisionTest):
     try:
@@ -114,15 +118,7 @@ def main(vision_test_obj: VisionTest):
         end(vision_test_obj)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument( '-log',
-                        '--loglevel',
-                        default='info',
-                        help='Provide logging level. Example --loglevel debug, default=info' )
 
-    args = parser.parse_args()
+    logging.basicConfig(format=LOGGER_FORMAT)
 
-    logging.basicConfig(format=LOGGER_FORMAT,
-                        level=args.loglevel.upper())
-
-    main(VisionTest())
+    main(VisionTest(Resource()))

@@ -1,11 +1,13 @@
 RPI_LOOP_INTERVAL = 0.1  # in second
 RPI_SERIAL = {'port': '/dev/ttyS0'}
 RPI_START_DISTANCE = 0.1  # in meter
+ASK_LANG_FILE = '2596_石頭1.wav'
 
 TEST_START_DEGREE = 0.5
 TEST_START_DISTANCE = 0.1
 
 LOGGER_FORMAT = "%(name)-11s:%(levelname)-7s: %(message)s"
+LOGGER_LEVEL = 'DEBUG'
 
 GPIO_SONIC_TRIGGER = 23
 GPIO_SONIC_ECHO = 24

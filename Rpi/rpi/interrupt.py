@@ -11,6 +11,7 @@ class Interrupt:
     """
 
     logger = logging.getLogger('Interrupt')
+    logger.setLevel(LOGGER_LEVEL)
 
     @classmethod
     def sorter(cls, ex: InterruptException):
@@ -44,6 +45,7 @@ class Interrupt:
         elif ex.args[0] == INTERRUPT_INST_SHOW_IMG:
             img = draw_circle_with_right_opening(thickness=get_thickness(test.cur_degree))
             test.dir = random.randint(0, 3)
+            cls.logger.debug(f"D: {test.dir}")
 
             result = paste_square_image_centered(img.rotate(test.dir * 90))
             cls.show_img(test, result)
@@ -86,7 +88,7 @@ class Interrupt:
         while True:
             try:
                 cls.logger.info(f'Waiting test resp')
-                return test.res.get_test_resp() == test.dir
+                return test.res.get_test_resp(test.lang) == test.dir
 
             except ValueError as e:
                 cls.logger.warning(e.args[0])

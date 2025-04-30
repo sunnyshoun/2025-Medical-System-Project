@@ -38,7 +38,7 @@ class ResourceDummy(IResource):
         self.logger.debug('Close serial')
         self.ser.close()
 
-    def get_test_resp(self) -> int:
+    def get_test_resp(self, lang: int) -> int:
         self.logger.debug('get_test_resp, assuming resp = 0')
         return 0
 

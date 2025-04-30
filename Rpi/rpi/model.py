@@ -23,7 +23,7 @@ class IResource:
     def close():
         raise NotImplementedError('Calling the interface method `close()`')
 
-    def get_test_resp(self) -> int:
+    def get_test_resp(self, lang: int) -> int:
         raise NotImplementedError('Calling the interface method `get_test_resp()`')
 
     def get_lang_resp(self) -> int:
