@@ -4,7 +4,7 @@ from .model import IResource
 from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
-from audio.player import AudioPlayer
+from audio.player import audio_player
 from audio.classes import Language
 import time, Adafruit_SSD1306, serial, logging
 from PIL.Image import Image
@@ -76,7 +76,7 @@ class Resource(IResource):
                     command = recognize_direct(recorder, recognizer)
                     break
                 except ValueError:
-                    AudioPlayer().play_async(RECOGNITION_FAIL_FILE, LANGUAGES[lang.lang_code])
+                    audio_player.play_async(RECOGNITION_FAIL_FILE, LANGUAGES[lang.lang_code])
                     self.logger.info("辨識失敗，請再說一次")
         finally:
             recorder.stop()
@@ -84,16 +84,15 @@ class Resource(IResource):
                     
     def get_lang_resp(self) -> Language:
         recorder = AudioRecorder(device_index=11)
-        player = AudioPlayer()
-        player.play_async(ASK_LANG_FILE, 'all')
+        audio_player.play_async(ASK_LANG_FILE, 'all')
         try:
             while True:
                 try:
                     user_lang = detect_language(recorder)
-                    player.stop()
+                    audio_player.stop()
                     break
                 except TimeoutError:
-                    player.play_async(ASK_LANG_FILE, 'all')
+                    audio_player.play_async(ASK_LANG_FILE, 'all')
                     self.logger.info("未收到使用者語音，請再試一次")
         finally:
             recorder.stop()

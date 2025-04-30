@@ -1,6 +1,6 @@
 from .model import InterruptException, VisionTest
 from audio.classes import Language
-from audio.player import AudioPlayer
+from audio.player import audio_player
 from setting import *
 from data import vision
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
@@ -35,7 +35,7 @@ class Interrupt:
             test.res.oled_clear()
             test.res.oled_display()
 
-            AudioPlayer().play_async(TEST_INTRO_FILE, LANGUAGES[test.lang.lang_code])
+            audio_player.play_async(TEST_INTRO_FILE, LANGUAGES[test.lang.lang_code])
             msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
             cls.logger.debug(f"sending: {msg.rstrip()}")
             ser.write(msg.encode())
@@ -69,7 +69,7 @@ class Interrupt:
         resp = test.res.ser.readline().decode().strip()
 
         if resp == 'done':
-            AudioPlayer().play_async(BEEP_FILE, 'all')
+            audio_player.play_async(BEEP_FILE, 'all')
             cls.logger.info(f"Move done")
         else:
             raise ValueError(f'Unexpected response from wait move: {resp}')
@@ -101,7 +101,7 @@ class Interrupt:
         cls.logger.info(f'Show image, dir: {test.dir}')
         test.res.oled_img(img)
         test.res.oled_display()
-        AudioPlayer().play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
+        audio_player.play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
 
     @classmethod
     def test_resp(cls, test: VisionTest) -> bool:

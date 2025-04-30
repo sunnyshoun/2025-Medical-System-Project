@@ -33,3 +33,5 @@ class AudioPlayer:
             self.process.terminate()
             self.process.wait()
             self.process = None
+
+audio_player = AudioPlayer()
