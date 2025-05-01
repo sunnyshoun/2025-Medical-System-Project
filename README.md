@@ -3,6 +3,12 @@
 ## Directory
 
 - Rpi
+  - audio
+    - classes.py
+    - language_detection.py
+    - player.py
+    - recognizer.py
+    - recorder.py
   - data
     - draw.py
     - vision.py
@@ -11,11 +17,33 @@
     - model.py
     - resource.py
   - test
+  - main.py
+  - setting.py
 
 ## Flow Chart
 ```mermaid
 ---
 title: Main flow
+---
+flowchart TD
+    set0((啟動程式))
+    set1{{初始化目錄}}
+    act0[/顯示目錄，等待按鍵輸入/]
+    act1([開始測試])
+    act2{{變更目錄參數}}
+    end0[下一輪]
+    set0 --> set1
+    set1 --> act0
+    act0 -- 開始測試 --> act1
+    act0 -- 其他 --> act2
+    act1 --> end0
+    act2 --> end0
+    end0 --> set1
+```
+---
+```mermaid
+---
+title: Test flow
 ---
 flowchart TD
     set0((開始測試))

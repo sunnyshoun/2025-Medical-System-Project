@@ -9,6 +9,7 @@ RECOGNITION_FAIL_FILE = 'recognition_failed.wav'
 
 TEST_START_DEGREE = 0.5
 TEST_START_DISTANCE = 0.1
+TEST_SHOW_DURATION = 10
 
 LOGGER_FORMAT = "%(name)-11s:%(levelname)-7s: %(message)s"
 LOGGER_LEVEL = 'DEBUG'
@@ -25,7 +26,7 @@ RESULT_STRS = [
     'Your vision: ',
     'あなたの視力: '
 ]
-RESULT_FONT = {'font': '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', 'size': 20}
+RESULT_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 20}
  
 
 # === Define ===
