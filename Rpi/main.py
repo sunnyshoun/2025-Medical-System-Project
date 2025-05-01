@@ -2,7 +2,6 @@ from rpi.model import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
 from setting import *
 from data import vision
-from audio.player import audio_player
 import logging, time
 
 logger = logging.getLogger('TestingFlow')
@@ -21,7 +20,7 @@ def setup(t: VisionTest):
     logger.debug('Choose language')
     t.lang = Interrupt.lang_resp(t)
     logger.info(f'Set language to: {t.lang.lang_code}')
-    audio_player.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
+    t.res.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
 
 def loop(t: VisionTest):
     # === define ===
@@ -29,8 +28,8 @@ def loop(t: VisionTest):
     _STATE_SHOW_IMG = 1
     _STATE_INPUT = 2
 
-    logger.debug(f'--- Enter loop with state: {t.state} ---')
-    logger.debug(f'cur_degree: {t.cur_degree}, cur_distance: {t.cur_distance}')
+    logger.info(f'--- Enter loop with state: {t.state} ---')
+    logger.info(f'cur_degree: {t.cur_degree}, cur_distance: {t.cur_distance}')
 
     if t.state == _STATE_SET_UP:
         if 0.1 <= t.cur_degree and t.cur_degree <= 1.5:
@@ -91,14 +90,15 @@ def loop(t: VisionTest):
         raise ValueError(f'Unexpected state code: {t.state}')
 
     
-def end(t: VisionTest):
+def end(t: VisionTest, wait: int = 0):
     logger.info('End section')
     t.close()
-    time.sleep(10)
+    logger.info(f'Exit after {wait} s')
+    time.sleep(wait)
     t.res.oled_clear()
     t.res.oled_display()
 
-def main(vision_test_obj: VisionTest):
+def main(vision_test_obj: VisionTest, wait: int = 0):
     try:
         setup(vision_test_obj)
 
@@ -117,7 +117,7 @@ def main(vision_test_obj: VisionTest):
         logger.info('Catch KeyboardInterrupt')
         
     finally:
-        end(vision_test_obj)
+        end(vision_test_obj, wait)
 
 if __name__ == '__main__':
 
@@ -125,4 +125,4 @@ if __name__ == '__main__':
 
     logging.basicConfig(format=LOGGER_FORMAT)
 
-    main(VisionTest(Resource()))
+    main(VisionTest(Resource()), wait=TEST_SHOW_DURATION)

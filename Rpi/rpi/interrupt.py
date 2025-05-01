@@ -1,6 +1,5 @@
 from .model import InterruptException, VisionTest
 from audio.classes import Language
-from audio.player import audio_player
 from setting import *
 from data import vision
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
@@ -22,53 +21,68 @@ class Interrupt:
 
         test = ex.test
         ser = test.res.ser
+        instruction = ex.args[0]
 
-        if ex.args[0] == INTERRUPT_INST_SHOW_RESULT:
-            cls.logger.debug('Show result')
-            cls.show_result(test, ex.args[1])
+        dispatch = {
+            INTERRUPT_INST_SHOW_RESULT: lambda: cls._handle_show_result(test, ex.args[1]),
+            INTERRUPT_INST_START_MOV: lambda: cls._handle_start_mov(test, ex.args[1]),
+            INTERRUPT_INST_SHOW_IMG: lambda: cls._handle_show_img(test),
+            INTERRUPT_INST_USR_RESP: lambda: cls._handle_user_response(test),
+        }
 
-        elif ex.args[0] == INTERRUPT_INST_START_MOV:
-            delta = ex.args[1]
-            target = test.cur_distance + (delta / 1000)
-            cls.logger.info(f"Start moving {delta} mm to {round(target, 3)}")
-
-            test.res.oled_clear()
-            test.res.oled_display()
-
-            msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
-            cls.logger.debug(f"sending: {msg.rstrip()}")
-            ser.write(msg.encode())
-
-            resp = ser.readline().decode().strip()
-            if resp == 'ok':
-                test.cur_distance = round(target, 3) 
-                cls.logger.debug(f"Start move got \"ok\"")
-            else:
-                raise ValueError(f'Unexpected response from start move: {resp}')
-            
-            cls.wait_mov(test)
-
-        elif ex.args[0] == INTERRUPT_INST_SHOW_IMG:
-            img = draw_circle_with_right_opening(thickness=vision.thickness[int(test.cur_degree * 10) - 1])
-            test.dir = random.randint(0, 3)
-            cls.logger.debug(f"D: {test.dir}")
-
-            result = paste_square_image_centered(img.rotate(test.dir * 90))
-            cls.show_img(test, result)
-
-        elif ex.args[0] == INTERRUPT_INST_USR_RESP:
-            test.got_resp = cls.test_resp(test)
-            cls.logger.info(f'Got test response: {test.got_resp}')
-
+        handler = dispatch.get(instruction)
+        if handler:
+            handler()
         else:
-            raise ValueError(f'Unexpected instruction code: {ex.args[0]}')
+            raise ValueError(f'Unexpected instruction code: {instruction}')
+
+    @classmethod
+    def _handle_show_result(cls, test: VisionTest, degree: float):
+        cls.logger.debug('Show result')
+        cls.show_result(test, degree)
+
+    @classmethod
+    def _handle_start_mov(cls, test: VisionTest, delta: float):
+        target = test.cur_distance + (delta / 1000)
+        cls.logger.info(f"Start moving {delta} mm to {round(target, 3)}")
+
+        test.res.oled_clear()
+        test.res.oled_display()
+
+        msg = f'm{0 if delta > 0 else 1},{abs(delta)}\n'
+        cls.logger.debug(f"sending: {msg.rstrip()}")
+        test.res.ser.write(msg.encode())
+
+        resp = test.res.ser.readline().decode().strip()
+        if resp == 'ok':
+            test.cur_distance = round(target, 3)
+            cls.logger.debug(f"Start move got \"ok\"")
+        else:
+            raise ValueError(f'Unexpected response from start move: {resp}')
+
+        cls.wait_mov(test)
+
+    @classmethod
+    def _handle_show_img(cls, test: VisionTest):
+        thickness = vision.thickness[int(test.cur_degree * 10) - 1]
+        img = draw_circle_with_right_opening(thickness=thickness)
+        test.dir = random.randint(0, 3)
+        cls.logger.debug(f"D: {test.dir}")
+        result = paste_square_image_centered(img.rotate(test.dir * 90))
+        cls.show_img(test, result)
+
+    @classmethod
+    def _handle_user_response(cls, test: VisionTest):
+        test.got_resp = cls.test_resp(test)
+        cls.logger.info(f'Got test response: {test.got_resp}')
+
     
     @classmethod
     def wait_mov(cls, test: VisionTest):
         resp = test.res.ser.readline().decode().strip()
 
         if resp == 'done':
-            audio_player.play_async(BEEP_FILE, 'all')
+            test.res.play_async(BEEP_FILE, 'all')
             cls.logger.info(f"Move done")
         else:
             raise ValueError(f'Unexpected response from wait move: {resp}')
@@ -94,7 +108,7 @@ class Interrupt:
         draw.text((5, 22), f'{d:0.1f}', font=font, fill = 255)
         test.res.oled_img(image)
         test.res.oled_display()
-        audio_player.play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
+        test.res.play_async(TEST_DONE_FILE, LANGUAGES[test.lang.lang_code])
 
     @classmethod
     def show_img(cls, test: VisionTest, img: Image) -> None:

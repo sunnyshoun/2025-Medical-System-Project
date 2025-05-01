@@ -29,6 +29,9 @@ class IResource:
 
     def get_lang_resp(self) -> Language:
         raise NotImplementedError('Calling the interface method `get_lang_resp()`')
+    
+    def play_async(self, file_name: str, language: str, wait_time: int = 0):
+        raise NotImplementedError('Calling the interface method `play_async`')
 
 class VisionTest:
     cur_distance: float

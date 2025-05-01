@@ -99,3 +99,6 @@ class Resource(IResource):
         finally:
             recorder.stop()
         return user_lang
+    
+    def play_async(self, file_name: str, language: str, wait_time: int = 0):
+        return audio_player.play_async(file_name, language, wait_time)
