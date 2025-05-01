@@ -1,133 +1,208 @@
+import time
+import dbus
+import logging
 import subprocess
-import re
-import time, logging
 from typing import List
-from classes import Device
+from pulsectl import Pulse, PulseError
 from config_manager import load_config, save_config
+from classes import Device
 
 logger = logging.getLogger('deviceManager')
 
-def run_command(command, timeout=10):
-    """執行 shell 命令並返回輸出"""
-    try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=timeout)
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        logger.error(f"命令執行失敗: {command}\n錯誤: {e.stderr.strip()}")
-        return None
-    except subprocess.TimeoutExpired:
-        logger.error(f"命令超時: {command}")
-        return None
-
-def list_devices() -> List[Device]:
-    """列出所有藍牙設備（已連線、已配對、新設備）"""
-    devices = []
+class BluetoothScanner:
+    """藍牙設備掃描器，支援連續掃描和設備列舉"""
     
-    # 獲取已配對設備
-    paired_output = run_command("echo 'devices Paired' | bluetoothctl")
-    paired_devices = {}
-    if paired_output:
-        for line in paired_output.splitlines():
-            match = re.match(r"Device ([0-9A-F:]+) (.+)", line)
-            if match:
-                mac, name = match.groups()
-                mac_formatted = mac.replace(":", "_")
-                connected = run_command(f"echo 'info {mac}' | bluetoothctl | grep 'Connected: yes'") is not None
-                paired_devices[mac_formatted] = {"name": name, "connected": connected}
-                devices.append(Device(device_name=name, mac_address=mac_formatted))
+    def __init__(self):
+        self.bus = dbus.SystemBus()
+    
+    def _get_adapter_iface(self):
+        """獲取藍牙適配器介面"""
+        adapter = self.bus.get_object('org.bluez', '/org/bluez/hci0')
+        return (
+            dbus.Interface(adapter, 'org.bluez.Adapter1'),
+            dbus.Interface(adapter, 'org.freedesktop.DBus.Properties')
+        )
+    
+    def start(self):
+        """啟動藍牙掃描"""
+        try:
+            adapter_iface, props_iface = self._get_adapter_iface()
+            if not props_iface.Get('org.bluez.Adapter1', 'Powered'):
+                props_iface.Set('org.bluez.Adapter1', 'Powered', True)
+            if not props_iface.Get('org.bluez.Adapter1', 'Discovering'):
+                adapter_iface.StartDiscovery()
+        except Exception as e:
+            logger.error(f"啟動掃描失敗: {e}")
+            raise
+    
+    def list_devices(self) -> List[Device]:
+        """列出可連線的藍牙設備，排除名稱為 'Unknown' 的設備"""
+        devices = []
+        try:
+            obj_mngr = self.bus.get_object('org.bluez', '/')
+            objects = dbus.Interface(obj_mngr, 'org.freedesktop.DBus.ObjectManager').GetManagedObjects()
+            
+            for path, interfaces in objects.items():
+                if 'org.bluez.Device1' not in interfaces:
+                    continue
+                props = interfaces['org.bluez.Device1']
+                device_name = props.get('Name', 'Unknown')
+                if device_name == 'Unknown':
+                    continue
+                
+                is_paired = props.get('Paired', False)
+                has_rssi = props.get('RSSI') is not None
+                if not (is_paired or has_rssi):
+                    continue
+                
+                device = Device(
+                    device_name=device_name,
+                    mac_address=props['Address'].replace(':', '_')
+                )
+                if device not in devices:
+                    devices.append(device)
+        except Exception as e:
+            logger.error(f"列出設備失敗: {e}")
+        
+        return devices
+    
+    def stop(self):
+        """停止藍牙掃描"""
+        try:
+            adapter_iface, props_iface = self._get_adapter_iface()
+            if props_iface.Get('org.bluez.Adapter1', 'Discovering'):
+                adapter_iface.StopDiscovery()
+        except Exception as e:
+            logger.warning(f"停止掃描失敗: {e}")
 
-    # 掃描新設備（短暫掃描 5 秒）
-    new_devices = {}
-    scan_process = subprocess.Popen(
-        "bluetoothctl scan on", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-    )
-    start_time = time.time()
+def verify_profile(card_name: str, expected_profile: str) -> bool:
+    """驗證當前 profile 是否匹配預期"""
     try:
-        while time.time() - start_time < 5:
-            stdout_line = scan_process.stdout.readline().strip()
-            if stdout_line:
-                match = re.search(r"\[NEW\] Device ([0-9A-F:]+) (.+)", stdout_line)
-                if match:
-                    mac, name = match.groups()
-                    mac_formatted = mac.replace(":", "_")
-                    if mac_formatted not in paired_devices:
-                        new_devices[mac_formatted] = {"name": name, "connected": False}
-                        devices.append(Device(device_name=name, mac_address=mac_formatted))
-            time.sleep(0.1)
-    finally:
-        run_command("echo 'scan off' | bluetoothctl")
-        scan_process.terminate()
-
-    return devices
+        output = subprocess.check_output(["pactl", "list", "cards"], text=True)
+        lines = iter(output.splitlines())
+        for line in lines:
+            if f"Name: {card_name}" in line:
+                for next_line in lines:
+                    if "Active Profile:" in next_line:
+                        return next_line.split("Active Profile:")[1].strip() == expected_profile
+        return False
+    except subprocess.CalledProcessError as e:
+        logger.error(f"驗證 profile 失敗: {e}")
+        return False
 
 def connect_device(device: Device) -> bool:
-    """連線設備、設定為 HFP、設定預設輸入/輸出，並更新 config"""
+    """連線設備、設定 HFP、設為預設輸入/輸出、應用音量並更新 config"""
     config = load_config()
-    mac = device.mac_address.replace("_", ":")  # 轉為 bluetoothctl 需要的格式
+    dev_path = f"/org/bluez/hci0/dev_{device.mac_address}"
 
+    # 步驟 1: 配對並連線設備
     try:
-        # 步驟 1: 連線設備
-        logger.info(f"正在連線到設備 {device.device_name} ({mac})...")
-        run_command(f"echo 'trust {mac}' | bluetoothctl")
-        run_command(f"echo 'pair {mac}' | bluetoothctl")
-        run_command(f"echo 'connect {mac}' | bluetoothctl")
-        time.sleep(3)
-        if not run_command(f"echo 'info {mac}' | bluetoothctl | grep 'Connected: yes'"):
-            logger.warning("設備連線失敗")
-            return False
+        bus = dbus.SystemBus()
+        dev = bus.get_object('org.bluez', dev_path)
+        dev_iface = dbus.Interface(dev, 'org.bluez.Device1')
+        props_iface = dbus.Interface(dev, 'org.freedesktop.DBus.Properties')
 
-        # 步驟 2: 設定為 HFP 模式
-        card_name = f"bluez_card.{device.mac_address}"
-        cards = run_command("pactl list cards short")
-        if not (cards and card_name in cards):
-            logger.warning(f"無法設定 HFP 模式，未找到卡 {card_name}")
+        if not props_iface.Get('org.bluez.Device1', 'Paired'):
+            dev_iface.Pair(timeout=30000)
+        if not props_iface.Get('org.bluez.Device1', 'Connected'):
+            dev_iface.Connect(timeout=30000)
+        
+        time.sleep(0.5)  # 短暫等待連線穩定
+        if not props_iface.Get('org.bluez.Device1', 'Connected'):
+            logger.error(f"設備 {device.device_name} 未連線")
             return False
-        run_command(f"pactl set-card-profile {card_name} headset_head_unit")
-        time.sleep(1)
-
-        # 步驟 3: 設定預設輸入和輸出
-        sink_name = f"bluez_sink.{device.mac_address}.headset_head_unit"
-        source_name = f"bluez_source.{device.mac_address}.headset_head_unit"
-        run_command(f"pactl set-default-sink {sink_name}")
-        run_command(f"pactl set-default-source {source_name}")
-        sinks = run_command("pactl list sinks short")
-        sources = run_command("pactl list sources short")
-        if not (sinks and sources and sink_name in sinks and source_name in sources):
-            logger.warning(f"設定預設音訊設備失敗，Sink: {sink_name}, Source: {source_name}")
-            return False
-
-        # 步驟 4: 更新 config.json 的 HEADPHONE_DEVICE_MAC
-        config["HEADPHONE_DEVICE_MAC"] = device.mac_address
-        save_config(config)
-        logger.info("設備連線並設定成功")
-        return True
     except Exception as e:
-        logger.error(f"連線或設定設備失敗: {str(e)}")
+        logger.error(f"連線 {device.device_name} 失敗: {e}")
         return False
+
+    # 步驟 2: 檢查是否支援 HFP
+    try:
+        with Pulse('bluetooth-audio') as pulse:
+            card_name = f"bluez_card.{device.mac_address}"
+            card = None
+            for _ in range(3):
+                try:
+                    card = pulse.get_card_by_name(card_name)
+                    break
+                except PulseError:
+                    time.sleep(0.5)
+            if not card:
+                config["HEADPHONE_DEVICE_MAC"] = device.mac_address
+                save_config(config)
+                return True
+            
+            hfp_profile = next(
+                (p for p in card.profile_list if any(term in p.name.lower() for term in ["headset", "handsfree"])),
+                None
+            )
+            if not hfp_profile:
+                config["HEADPHONE_DEVICE_MAC"] = device.mac_address
+                save_config(config)
+                return True
+            
+            pulse.card_profile_set(card, hfp_profile)
+            time.sleep(1)
+            
+            if not verify_profile(card_name, hfp_profile.name):
+                logger.error(f"HFP profile 未設定為 {hfp_profile.name}")
+                return False
+
+            sink_name = f"bluez_output.{device.mac_address}.1"
+            source_name = f"bluez_input.{device.mac_address}.0"
+            sink = source = None
+            for _ in range(3):
+                try:
+                    sink = pulse.get_sink_by_name(sink_name)
+                    source = pulse.get_source_by_name(source_name)
+                    break
+                except PulseError:
+                    time.sleep(0.5)
+            if not (sink and source):
+                logger.error(f"未找到 sink/source: {sink_name}/{source_name}")
+                return False
+
+            pulse.sink_default_set(sink)
+            pulse.source_default_set(source)
+    except Exception as e:
+        logger.error(f"設定 HFP for {device.device_name} 失敗: {e}")
+        return False
+
+    # 步驟 3: 更新 config
+    config["HEADPHONE_DEVICE_MAC"] = device.mac_address
+    save_config(config)
+
+    # 步驟 4: 應用音量（僅對音訊設備）
+    try:
+        if hfp_profile:
+            volume = int(config.get("VOLUME", "50%").strip("%"))
+            if not set_device_volume(volume):
+                logger.error(f"設定音量失敗 for {device.device_name}")
+                return False
+    except ValueError as e:
+        logger.error(f"無效音量值: {e}")
+        return False
+
+    return True
 
 def set_device_volume(volume: int) -> bool:
-    """設定預設設備的播放音量並更新 config 的 VOLUME"""
+    """設定預設設備音量並更新 config"""
     if not 0 <= volume <= 100:
-        logger.warning("音量必須在 0 到 100 之間")
+        logger.warning("音量需在 0~100")
         return False
 
     config = load_config()
-    mac_address = config.get("HEADPHONE_DEVICE_MAC")
-    if not mac_address:
-        logger.warning("未找到 HEADPHONE_DEVICE_MAC 配置")
+    mac = config.get("HEADPHONE_DEVICE_MAC")
+    if not mac:
+        logger.warning("未設定 HEADPHONE_DEVICE_MAC")
         return False
 
     try:
-        # 設定播放音量
-        volume_str = f"{volume}%"
-        sink_name = f"bluez_sink.{mac_address}.headset_head_unit"
-        run_command(f"pactl set-sink-volume {sink_name} {volume_str}")
-
-        # 更新 config.json 的 VOLUME
-        config["VOLUME"] = volume_str
-        save_config(config)
-        logger.info(f"播放音量設定為 {volume_str}")
-        return True
-    except Exception as e:
-        logger.error(f"設定播放音量失敗: {str(e)}")
+        with Pulse('volume-setter') as pulse:
+            sink = pulse.get_sink_by_name(f"bluez_output.{mac}.1")
+            pulse.volume_set_all_chans(sink, volume / 100.0)
+            config["VOLUME"] = f"{volume}%"
+            save_config(config)
+            return True
+    except PulseError as e:
+        logger.error(f"設定音量失敗: {e}")
         return False

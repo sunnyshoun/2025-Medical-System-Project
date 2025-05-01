@@ -1,17 +1,8 @@
 import subprocess
 import os
-from config_manager import load_config
 
 class AudioPlayer:
     def __init__(self):
-        config = load_config()
-        self.headphone_mac = config.get('HEADPHONE_DEVICE_MAC')
-        self.volume = config.get('VOLUME')
-        
-        if not self.headphone_mac or not self.volume:
-            raise ValueError("HEADPHONE_DEVICE_MAC or VOLUME not found in config")
-
-        subprocess.run(["pactl", "set-sink-volume", f"bluez_output.{self.headphone_mac}.1", f"{self.volume}"], check=True)
         self.base_folder = os.path.join(os.path.dirname(__file__), "audioFiles")
         self.process = None
 
