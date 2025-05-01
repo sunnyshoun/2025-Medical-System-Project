@@ -68,7 +68,7 @@ class Resource(IResource):
         self.disp.image(img.convert('1'))
     
     def get_test_resp(self, lang: Language):
-        recorder = AudioRecorder(device_index=11)
+        recorder = AudioRecorder()
         recognizer = Recognizer(lang)
         try:
             while True:
@@ -83,9 +83,7 @@ class Resource(IResource):
         return command
                     
     def get_lang_resp(self) -> Language:
-        recorder = AudioRecorder(device_index=11)
-        audio_player.play_async(BEEP_FILE, 'all')
-        audio_player.wait_play_done()
+        recorder = AudioRecorder()
         audio_player.play_async(ASK_LANG_FILE, 'all')
         try:
             while True:
