@@ -3,7 +3,7 @@ from audio.classes import Language
 import serial
 from PIL.Image import Image, new
 from PIL import ImageDraw
-from typing import Callable
+from typing import Callable, List
 
 class IResource:
     ser: serial.Serial
@@ -65,30 +65,61 @@ class InterruptException(Exception):
         self.end = end
         self.test = test
 
-class MainMenu:
-    bluetooth: object
-    res: IResource
-    state: int
-    select: int
-    select_list: list[object]
+class MenuElement:
+    img: Image
+    call_back: Callable[[], None]
 
-    def __init__(self):
-        
-        raise NotImplementedError()
-
-    def show_list():
-        img = new('1', (128, 64))
-        draw = ImageDraw.Draw(img)
-        draw.rectangle((0, 0, 128, 64), outline=0, fill=0)
-
-        raise NotImplementedError()
-
-class Widget(Image):
-    call_back: Callable[[None], None]
-
-    def open(self, call_back: Callable[[None], None]):
+    def __init__(self, img: Image, call_back: Callable[[], None]):
+        self.img = img
         self.call_back = call_back
-        raise NotImplementedError()
 
-    def selected(self):
-        self.call_back()
+class Menu:
+    select_index: int
+    select_list: list[MenuElement]
+    item_height: int
+    items_visible: int
+
+    def __init__(self, select_list: List[MenuElement]):
+        self.select_index = 0
+        self.select_list = select_list
+        self.items_visible = SCREEN_HEIGHT // self.item_height
+
+    def move_up(self):
+        if self.select_index > 0:
+            self.select_index -= 1
+
+    def move_down(self):
+        if self.select_index < len(self.select_list) - 1:
+            self.select_index += 1
+
+    def select(self):
+        self.select_list[self.select_index].call_back()
+
+    def list_img(self) -> Image:
+        img = new('1', (SCREEN_WIDTH, SCREEN_HEIGHT))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle((0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), outline=0, fill=0)
+
+        # 計算從哪個 index 開始畫，讓選中的項目在中間
+        half_visible = self.items_visible // 2
+        start_index = max(0, self.select_index - half_visible)
+        end_index = min(len(self.select_list), start_index + self.items_visible)
+
+        mid_pixel = (self.item_height - SCREEN_HEIGHT) // 2
+        img.paste(self.select_list[self.select_index].img, (0, mid_pixel))
+
+        offset_pixel = mid_pixel - self.item_height
+        offset_index = self.select_index - 1
+        while (offset_pixel > 0) and (offset_index >= 0):
+            img.paste(self.select_list[offset_index].img, (0, offset_pixel))
+            offset_pixel -= self.item_height
+            offset_index -= 1
+            
+        offset_pixel = mid_pixel + self.item_height
+        offset_index = self.select_index + 1
+        while (offset_pixel < SCREEN_HEIGHT - self.item_height) and (offset_index < len(self.select_list)):
+            img.paste(self.select_list[offset_index].img, (0, offset_pixel))
+            offset_pixel -= self.item_height
+            offset_index -= 1
+            
+        return img

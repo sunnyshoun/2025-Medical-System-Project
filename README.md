@@ -16,8 +16,9 @@
     - interrupt.py
     - model.py
     - resource.py
+    - tester.py
   - test
-  - main.py
+    - bunch of testing ...
   - setting.py
 
 ## Flow Chart
