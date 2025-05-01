@@ -12,24 +12,21 @@ class Recognizer:
         self.token = "2025@ME@asr"
 
     def recognize(self, wav_path: str) -> Optional[str]:
-        try:
-            with open(wav_path, 'rb') as f:
-                audio_base64 = base64.b64encode(f.read()).decode()
-            payload = {
-                'lang': self.language.api_lang,
-                'token': self.token,
-                'audio': audio_base64
-            }
+        with open(wav_path, 'rb') as f:
+            audio_base64 = base64.b64encode(f.read()).decode()
+        payload = {
+            'lang': self.language.api_lang,
+            'token': self.token,
+            'audio': audio_base64
+        }
 
-            for _ in range(3):
-                try:
-                    response = requests.post(self.api_url, data=payload, timeout=10)
-                    if response.status_code == 200:
-                        return response.json().get('sentence', "<{silent}>")
-                except requests.RequestException:
-                    time.sleep(1)
-        except Exception as e:
-            print(f"語音辨識錯誤：{e}")
+        for _ in range(3):
+            try:
+                response = requests.post(self.api_url, data=payload, timeout=10)
+                if response.status_code == 200:
+                    return response.json().get('sentence', "<{silent}>")
+            except requests.RequestException:
+                time.sleep(1)
         return "<{silent}>"
 
 

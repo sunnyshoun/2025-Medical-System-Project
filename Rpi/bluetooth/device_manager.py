@@ -1,10 +1,11 @@
 import subprocess
 import re
-import time
+import time, logging
 from typing import List
 from classes import Device
 from config_manager import load_config, save_config
 
+logger = logging.getLogger('deviceManager')
 
 def run_command(command, timeout=10):
     """執行 shell 命令並返回輸出"""
@@ -12,10 +13,10 @@ def run_command(command, timeout=10):
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=timeout)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"命令執行失敗: {command}\n錯誤: {e.stderr.strip()}")
+        logger.error(f"命令執行失敗: {command}\n錯誤: {e.stderr.strip()}")
         return None
     except subprocess.TimeoutExpired:
-        print(f"命令超時: {command}")
+        logger.error(f"命令超時: {command}")
         return None
 
 def list_devices() -> List[Device]:
@@ -66,20 +67,20 @@ def connect_device(device: Device) -> bool:
 
     try:
         # 步驟 1: 連線設備
-        print(f"正在連線到設備 {device.device_name} ({mac})...")
+        logger.info(f"正在連線到設備 {device.device_name} ({mac})...")
         run_command(f"echo 'trust {mac}' | bluetoothctl")
         run_command(f"echo 'pair {mac}' | bluetoothctl")
         run_command(f"echo 'connect {mac}' | bluetoothctl")
         time.sleep(3)
         if not run_command(f"echo 'info {mac}' | bluetoothctl | grep 'Connected: yes'"):
-            print("設備連線失敗")
+            logger.warning("設備連線失敗")
             return False
 
         # 步驟 2: 設定為 HFP 模式
         card_name = f"bluez_card.{device.mac_address}"
         cards = run_command("pactl list cards short")
         if not (cards and card_name in cards):
-            print(f"無法設定 HFP 模式，未找到卡 {card_name}")
+            logger.warning(f"無法設定 HFP 模式，未找到卡 {card_name}")
             return False
         run_command(f"pactl set-card-profile {card_name} headset_head_unit")
         time.sleep(1)
@@ -92,28 +93,28 @@ def connect_device(device: Device) -> bool:
         sinks = run_command("pactl list sinks short")
         sources = run_command("pactl list sources short")
         if not (sinks and sources and sink_name in sinks and source_name in sources):
-            print(f"設定預設音訊設備失敗，Sink: {sink_name}, Source: {source_name}")
+            logger.warning(f"設定預設音訊設備失敗，Sink: {sink_name}, Source: {source_name}")
             return False
 
         # 步驟 4: 更新 config.json 的 HEADPHONE_DEVICE_MAC
         config["HEADPHONE_DEVICE_MAC"] = device.mac_address
         save_config(config)
-        print("設備連線並設定成功")
+        logger.info("設備連線並設定成功")
         return True
     except Exception as e:
-        print(f"連線或設定設備失敗: {str(e)}")
+        logger.error(f"連線或設定設備失敗: {str(e)}")
         return False
 
 def set_device_volume(volume: int) -> bool:
     """設定預設設備的播放音量並更新 config 的 VOLUME"""
     if not 0 <= volume <= 100:
-        print("音量必須在 0 到 100 之間")
+        logger.warning("音量必須在 0 到 100 之間")
         return False
 
     config = load_config()
     mac_address = config.get("HEADPHONE_DEVICE_MAC")
     if not mac_address:
-        print("未找到 HEADPHONE_DEVICE_MAC 配置")
+        logger.warning("未找到 HEADPHONE_DEVICE_MAC 配置")
         return False
 
     try:
@@ -125,8 +126,8 @@ def set_device_volume(volume: int) -> bool:
         # 更新 config.json 的 VOLUME
         config["VOLUME"] = volume_str
         save_config(config)
-        print(f"播放音量設定為 {volume_str}")
+        logger.info(f"播放音量設定為 {volume_str}")
         return True
     except Exception as e:
-        print(f"設定播放音量失敗: {str(e)}")
+        logger.error(f"設定播放音量失敗: {str(e)}")
         return False
