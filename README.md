@@ -27,17 +27,29 @@ title: Main flow
 ---
 flowchart TD
     set0((啟動程式))
-    set1{{初始化目錄}}
-    act0[/顯示目錄，等待按鍵輸入/]
-    act1([開始測試])
-    act2{{變更目錄參數}}
+    set1{是否連到裝置？}
+    set2{{ns = bluetooth}}
+    set3{{ns = root}}
+    set4{state是否改變？}
+    set5{{index = 0}}
+    set6[cs = ns, 重整列表, 初始化目錄]
+    act0[/等待按鍵輸入/]
+    act1["ns, output = list[index].call_back()"]
+    act4{{index++/index--}}
     end0[下一輪]
     set0 --> set1
-    set1 --> act0
-    act0 -- 開始測試 --> act1
-    act0 -- 其他 --> act2
+    set1 -- 是 --> set3
+    set1 -- 否 --> set2
+    set3 --> set4
+    set2 --> set4
+    set4 -- 是 --> set5
+    set4 -- 否 --> set6
+    set5 --> set6
+    set6 --> act0
+    act0 -- 確認 --> act1
+    act0 -- 上/下 --> act4
     act1 --> end0
-    act2 --> end0
+    act4 --> end0
     end0 --> set1
 ```
 ---
