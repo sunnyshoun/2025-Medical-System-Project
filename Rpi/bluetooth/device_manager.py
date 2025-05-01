@@ -2,7 +2,7 @@ import subprocess
 import re
 import time, logging
 from typing import List
-from classes import Device
+from .classes import Device
 from config_manager import load_config, save_config
 
 logger = logging.getLogger('deviceManager')
