@@ -1,7 +1,9 @@
 from setting import *
 from audio.classes import Language
 import serial
-from PIL.Image import Image
+from PIL.Image import Image, new
+from PIL import ImageDraw
+from typing import Callable
 
 class IResource:
     ser: serial.Serial
@@ -62,3 +64,31 @@ class InterruptException(Exception):
         super().__init__(*args)
         self.end = end
         self.test = test
+
+class MainMenu:
+    bluetooth: object
+    res: IResource
+    state: int
+    select: int
+    select_list: list[object]
+
+    def __init__(self):
+        
+        raise NotImplementedError()
+
+    def show_list():
+        img = new('1', (128, 64))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle((0, 0, 128, 64), outline=0, fill=0)
+
+        raise NotImplementedError()
+
+class Widget(Image):
+    call_back: Callable[[None], None]
+
+    def open(self, call_back: Callable[[None], None]):
+        self.call_back = call_back
+        raise NotImplementedError()
+
+    def selected(self):
+        self.call_back()
