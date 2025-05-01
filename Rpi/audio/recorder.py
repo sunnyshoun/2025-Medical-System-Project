@@ -7,7 +7,7 @@ from typing import Optional
 import contextlib
 import sys
 import ctypes
-import contextlib
+from config_manager import load_config
 
 @contextlib.contextmanager
 def suppress_alsa_errors():
@@ -31,18 +31,24 @@ def suppress_alsa_errors():
         os.close(devnull)
 
 class AudioRecorder:
-    def __init__(self, device_index: int = 11, rate: int = 16000, frame_duration: int = 30, vad_mode: int = 3):
+    def __init__(self, rate: int = 16000, frame_duration: int = 30, vad_mode: int = 3):
+        config = load_config()
+        self.headphone_mac = config.get('HEADPHONE_DEVICE_MAC')
+        if not self.headphone_mac:
+            raise ValueError("HEADPHONE_DEVICE_MAC not found in config")
+
         self.rate = rate
         self.frame_duration = frame_duration
         self.frame_size = int(rate * frame_duration / 1000)
         self.byte_frame_size = self.frame_size * 2
-        self.device_index = device_index
         self.audio_dir = os.path.join(os.path.dirname(__file__), "audioFiles")
         os.makedirs(self.audio_dir, exist_ok=True)
 
         self.vad = webrtcvad.Vad(vad_mode)
         with suppress_alsa_errors():
             self.audio_interface = pyaudio.PyAudio()
+            device_index = self.find_bluetooth_device_index()
+            self.device_index = device_index
             self.stream = self.audio_interface.open(
                 format=pyaudio.paInt16,
                 channels=1,
@@ -51,6 +57,14 @@ class AudioRecorder:
                 input_device_index=self.device_index,
                 frames_per_buffer=self.frame_size
             )
+
+    def find_bluetooth_device_index(self):
+        """動態查找藍芽設備的 device_index"""
+        for i in range(self.audio_interface.get_device_count()):
+            device_info = self.audio_interface.get_device_info_by_index(i)
+            if device_info["maxInputChannels"] > 0 and self.headphone_mac.lower() in device_info["name"].lower():
+                return i
+        raise ValueError(f"No Bluetooth audio input device found for MAC: {self.headphone_mac}")
 
     def start(self):
         if not self.stream.is_active():
