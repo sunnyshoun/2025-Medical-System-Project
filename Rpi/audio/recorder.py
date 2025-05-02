@@ -47,24 +47,14 @@ class AudioRecorder:
         self.vad = webrtcvad.Vad(vad_mode)
         with suppress_alsa_errors():
             self.audio_interface = pyaudio.PyAudio()
-            device_index = self.find_bluetooth_device_index()
-            self.device_index = device_index
             self.stream = self.audio_interface.open(
                 format=pyaudio.paInt16,
                 channels=1,
                 rate=self.rate,
                 input=True,
-                input_device_index=self.device_index,
+                input_device_index=self.audio_interface.get_default_input_device_info().get('index'),
                 frames_per_buffer=self.frame_size
             )
-
-    def find_bluetooth_device_index(self):
-        """動態查找藍芽設備的 device_index"""
-        for i in range(self.audio_interface.get_device_count()):
-            device_info = self.audio_interface.get_device_info_by_index(i)
-            if device_info["maxInputChannels"] > 0 and self.headphone_mac.lower() in device_info["name"].lower():
-                return i
-        raise ValueError(f"No Bluetooth audio input device found for MAC: {self.headphone_mac}")
 
     def start(self):
         if not self.stream.is_active():
