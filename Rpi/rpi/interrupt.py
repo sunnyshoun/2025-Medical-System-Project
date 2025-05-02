@@ -1,4 +1,4 @@
-from .model import InterruptException, VisionTest
+from .models import InterruptException, VisionTest
 from audio.classes import Language
 from setting import *
 from data import vision
@@ -67,7 +67,7 @@ class Interrupt:
         thickness = vision.thickness[int(test.cur_degree * 10) - 1]
         img = draw_circle_with_right_opening(thickness=thickness)
         test.dir = random.randint(0, 3)
-        cls.logger.debug(f"D: {test.dir}")
+        cls.logger.debug(f"Dir: {test.dir}")
         result = paste_square_image_centered(img.rotate(test.dir * 90))
         cls.show_img(test, result)
 

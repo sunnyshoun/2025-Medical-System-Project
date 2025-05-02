@@ -31,6 +31,7 @@ RESULT_STRS = [
 RESULT_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 20}
 MENU_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 15}
 MENU_MAX_TEXT_LEN = 14
+MENU_TEXT_HEIGHT = 20
  
 
 # === Define ===
@@ -53,3 +54,11 @@ LANGUAGES = [
     'en',
     'jp'
 ]
+
+MENU_STATE_ROOT = 0
+MENU_STATE_BT = 1
+MENU_STATE_VOLUME = 2
+
+BTN_UP = 0
+BTN_CONFIRM = 1
+BTN_DOWN = 2

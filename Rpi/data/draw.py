@@ -39,6 +39,69 @@ def paste_square_image_centered(src_img: Image.Image, target_size=(128, 64), bac
 
     return canvas
 
+def draw_bluetooth_icon() -> Image.Image:
+    img = Image.new('1', (128, 64), 0)
+    draw = ImageDraw.Draw(img)
+    
+    cx, cy = 64, 32  # 中心點
+
+    # 藍牙標誌主要結構
+    top = (cx, cy - 20)
+    bottom = (cx, cy + 20)
+    right_upper = (cx + 10, cy - 10)
+    right_lower = (cx + 10, cy + 10)
+    left_upper = (cx - 10, cy - 10)
+    left_lower = (cx - 10, cy + 10)
+    
+    # 主幹線
+    draw.line([cx, cy-21, cx, cy+21], fill=1, width=3)
+
+    draw.line([top, right_upper], fill=1, width=3)
+    draw.line([right_upper, left_lower], fill=1, width=3)
+
+    draw.line([bottom, right_lower], fill=1, width=3)
+    draw.line([right_lower, left_upper], fill=1, width=3)
+
+    return img
+
+def draw_volume_icon() -> Image.Image:
+    img = Image.new('1', (128, 64), 0)
+    draw = ImageDraw.Draw(img)
+
+    # 喇叭
+    draw.polygon([(40, 26), (50, 26), (58, 20), (58, 44), (50, 38), (40, 38)], fill=1)
+
+    # 聲波
+    draw.arc((57, 20, 72, 44), start=300, end=60, fill=1, width=2)
+    draw.arc((67, 16, 82, 48), start=300, end=60, fill=1, width=2)
+    return img
+
+def draw_start_icon() -> Image.Image:
+    img = Image.new('1', (128, 64), 0)
+    draw = ImageDraw.Draw(img)
+    # 畫一個「播放」三角形
+    triangle = [(54, 22), (54, 42), (74, 32)]  # 向右的三角形
+    draw.polygon(triangle, fill=1)
+    return img
+
+def check(img: Image.Image) -> Image.Image:
+    draw = ImageDraw.Draw(img)
+
+    # 畫勾：像個對號 ✓
+    draw.line([(5, 15), (10, 20)], fill="green", width=2)
+    draw.line([(10, 20), (20, 5)], fill="green", width=2)
+
+    return img
+
+def cross(img: Image.Image) -> Image.Image:
+    draw = ImageDraw.Draw(img)
+
+    # 畫叉：像個 X
+    draw.line([(5, 5), (20, 20)], fill="red", width=2)
+    draw.line([(20, 5), (5, 20)], fill="red", width=2)
+
+    return img
+
 # 使用範例
 if __name__ == "__main__":
     img = draw_circle_with_right_opening(thickness=1)

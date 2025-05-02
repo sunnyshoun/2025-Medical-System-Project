@@ -14,14 +14,24 @@
     - vision.py
   - rpi
     - interrupt.py
-    - model.py
+    - models
+      - Menus.py
+      - Testers.py
     - resource.py
     - tester.py
   - test
     - bunch of testing ...
   - setting.py
 
-## Flow Chart
+## Note
+
+### Menu
+|            | MENU_STATE_ROOT | MENU_STATE_BT | MENU_STATE_VOLUME |
+|------------|-----------------|---------------|-------------------|
+| no device  | root, ind=1     | bt, kp ind    | root, ind=1       |
+| has device | root, kp ind    | bt, kp ind    | volume, kp ind    |
+
+### Flow Charts
 ```mermaid
 ---
 title: Main flow
@@ -29,23 +39,18 @@ title: Main flow
 flowchart TD
     set0((啟動程式))
     set1{是否連到裝置？}
-    set2{{ns = bluetooth}}
-    set3{{ns = root}}
-    set4{state是否改變？}
-    set5{{index = 0}}
+    set2{{cs == bt ? kp : ns = root, ind = 1}}
+    set3{{kp ns}}
     set6[cs = ns, 重整列表, 初始化目錄]
     act0[/等待按鍵輸入/]
-    act1["ns, output = list[index].call_back()"]
+    act1["ns = list[index].call_back()"]
     act4{{index++/index--}}
     end0[下一輪]
     set0 --> set1
     set1 -- 是 --> set3
     set1 -- 否 --> set2
-    set3 --> set4
-    set2 --> set4
-    set4 -- 是 --> set5
-    set4 -- 否 --> set6
-    set5 --> set6
+    set3 --> set6
+    set2 --> set6
     set6 --> act0
     act0 -- 確認 --> act1
     act0 -- 上/下 --> act4

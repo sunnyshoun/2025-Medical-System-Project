@@ -1,26 +1,24 @@
-from rpi.model import Menu, MenuElement, TextMenuElement
+from rpi.models import Menu, TextMenuElement
+from setting import *
 import os, logging
-
-logging.basicConfig(level='DEBUG')
+from rpi.menu import MainMenu
+from test_model import ResourceDummy
 
 os.chdir('./Rpi')
-eles: list[TextMenuElement] = []
-ele = TextMenuElement('asdasd', lambda: print('asdasd'))
-eles.append(ele)
-ele = TextMenuElement('asdasdasdasdasd', lambda: print('asdasd'))
-eles.append(ele)
-ele = TextMenuElement('ㄚㄚㄚㄚㄚㄚ', lambda: print('asdasd'))
-eles.append(ele)
-ele = TextMenuElement('ㄚ1ㄚㄚㄚㄚㄚㄚ1', lambda: print('asdasd'))
-eles.append(ele)
 
-menu = Menu(eles, ele.HEIGHT)
-menu.list_img().show()
-menu.move_down()
-menu.list_img().show()
-menu.move_down()
-menu.list_img().show()
-menu.move_down()
-menu.list_img().show()
-menu.move_down()
-menu.list_img().show()
+logging.basicConfig(level='DEBUG', 
+                    format=LOGGER_FORMAT,
+                    filemode='w',
+                    filename='.log')
+
+def start_func():
+    logging.info('Called `start_func`')
+
+menu = MainMenu(start_func, ResourceDummy())
+
+try:
+    while True:
+        menu.loop()
+except IndexError:
+    pass
+

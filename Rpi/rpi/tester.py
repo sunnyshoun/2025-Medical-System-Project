@@ -1,4 +1,4 @@
-from rpi.model import VisionTest, InterruptException
+from rpi.models import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
 from setting import *
 from data import vision

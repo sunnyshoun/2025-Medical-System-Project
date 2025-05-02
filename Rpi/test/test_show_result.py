@@ -1,6 +1,6 @@
 from rpi.interrupt import Interrupt
 from rpi.resource import Resource
-from rpi.model import VisionTest
+from rpi.models import VisionTest
 
 
 class OLEDResource(Resource):

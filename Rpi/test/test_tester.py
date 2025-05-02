@@ -1,4 +1,4 @@
-from rpi.model import VisionTest
+from rpi.models import VisionTest
 from rpi.tester import main
 from setting import *
 from test_model import ResourceDummy

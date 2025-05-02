@@ -1,16 +1,19 @@
 import RPi.GPIO as GPIO
 from setting import *
-from .model import IResource
+from .models import IResource
 from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
 from audio.player import audio_player
 from audio.classes import Language
+from bluetooth.device_manager import BluetoothScanner, set_device_volume
+from bluetooth.classes import Device
 import time, Adafruit_SSD1306, serial, logging
 from PIL.Image import Image
 
 class Resource(IResource):
     disp: Adafruit_SSD1306.SSD1306_128_64
+    scanner: BluetoothScanner
     logger = logging.getLogger('Resource')
     logger.setLevel(LOGGER_LEVEL)
 
@@ -19,6 +22,8 @@ class Resource(IResource):
         self.disp.begin()
         self.disp.clear()
         self.disp.display()
+
+        self.scanner = BluetoothScanner()
 
         self.ser = serial.Serial(**RPI_SERIAL)
 
@@ -100,3 +105,21 @@ class Resource(IResource):
     
     def play_async(self, file_name: str, language: str, wait_time: int = 0):
         return audio_player.play_async(file_name, language, wait_time)
+    
+    def list_bt_device(self):
+        self.scanner.start()
+        devices = self.scanner.list_devices()
+        self.scanner.stop()
+        return devices
+    
+    def connect_bt_device(self, device: Device):
+        return super().connect_bt_device(device)
+    
+    def set_volume(self, volume: int):
+        return set_device_volume(volume)
+    
+    def get_volume(self):
+        return super().get_volume()
+    
+    def read_btn(self):
+        raise NotImplementedError()
