@@ -174,7 +174,7 @@ def connect_device(device: Device) -> bool:
     # 步驟 4: 應用音量（僅對音訊設備）
     try:
         if hfp_profile:
-            volume = int(config.get("VOLUME", "50%").strip("%"))
+            volume = config.get("VOLUME", 50)
             if not set_device_volume(volume):
                 logger.error(f"設定音量失敗 for {device.device_name}")
                 return False
@@ -186,6 +186,7 @@ def connect_device(device: Device) -> bool:
 
 def set_device_volume(volume: int) -> bool:
     """設定預設設備音量並更新 config"""
+    volume = int(volume)
     if not 0 <= volume <= 100:
         logger.warning("音量需在 0~100")
         return False
@@ -200,7 +201,7 @@ def set_device_volume(volume: int) -> bool:
         with Pulse('volume-setter') as pulse:
             sink = pulse.get_sink_by_name(f"bluez_output.{mac}.1")
             pulse.volume_set_all_chans(sink, volume / 100.0)
-            config["VOLUME"] = f"{volume}%"
+            config["VOLUME"] = volume
             save_config(config)
             return True
     except PulseError as e:
