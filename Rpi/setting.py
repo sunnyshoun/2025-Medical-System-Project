@@ -29,6 +29,8 @@ RESULT_STRS = [
     'あなたの視力: '
 ]
 RESULT_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 20}
+MENU_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 15}
+MENU_MAX_TEXT_LEN = 14
  
 
 # === Define ===
