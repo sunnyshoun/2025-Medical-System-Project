@@ -97,15 +97,16 @@ class Menu:
         return img
 
 class TextMenuElement(MenuElement):
+    title: str
 
-    def str_cut(self) -> str:
+    def _str_cut(self, text: str) -> str:
         width = 0
-        if self.title == None:
+        if text == None:
             return 'None'
         
         paste_text = ''
 
-        for c in self.title:
+        for c in text:
             if 126 >= ord(c) >= 32:
                 width += 1
             else:
@@ -120,18 +121,17 @@ class TextMenuElement(MenuElement):
         return paste_text
 
     def __init__(self, text: str, call_back: Callable[[], int]):
-        self.title = text
         
         img = new('1', (128, MENU_TEXT_HEIGHT))
         draw = ImageDraw.Draw(img)
         font = ImageFont.truetype(**MENU_FONT)
 
         draw.rectangle((0, 0, 128, MENU_TEXT_HEIGHT), outline=0, fill=0)
-        paste_text = self.str_cut()
+        paste_text = self._str_cut(text)
 
         draw.text((2, 0), paste_text, font=font, fill=255)
 
-        super().__init__(img, call_back)
+        super().__init__(img, call_back, text)
 
     def indicate(self) -> Image:
         img = new('1', (128, MENU_TEXT_HEIGHT))
@@ -139,7 +139,7 @@ class TextMenuElement(MenuElement):
         font = ImageFont.truetype(**MENU_FONT)
 
         draw.rectangle((0, 0, 128, MENU_TEXT_HEIGHT), outline=0, fill=255)
-        paste_text = self.str_cut()
+        paste_text = self._str_cut(self.title)
 
         draw.text((2, 0), paste_text, font=font, fill=0)
 

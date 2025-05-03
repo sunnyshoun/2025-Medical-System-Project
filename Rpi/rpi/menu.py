@@ -1,6 +1,5 @@
 from .models import Menu, TextMenuElement, IconMenuElement, IResource, VisionTest
-from data.draw import draw_bluetooth_icon, draw_start_icon, draw_volume_icon
-from .tester import main
+from data.draw import draw_bluetooth_icon, draw_start_icon, draw_volume_icon, cross, check
 from bluetooth.classes import Device
 from config_manager import get_config_value
 from setting import *
@@ -9,19 +8,6 @@ from typing import Callable
 
 class CallBacks:
     logger = logging.getLogger('CallBacks')
-
-    @classmethod
-    def wrap_volume_callback(cls, volume: int, res: IResource) -> Callable[[], int]:
-        """
-        Return call back func been called when volume was selected
-        """
-        def wrapped():
-            cls.logger.info(f'Set volume to {volume}')
-            res.volume = volume
-
-            return MENU_STATE_ROOT
-
-        return wrapped
 
     @classmethod    
     def bluetooth_enter_callback(cls) -> int:
@@ -66,9 +52,9 @@ class MainMenu:
     logger = logging.getLogger('MainMenu')
     logger.setLevel(LOGGER_LEVEL)
 
-    def __init__(self, tester_func: Callable[[], None], res: IResource):
+    def __init__(self, tester_func: Callable[[], int], res: IResource):
         root_ele = [
-            IconMenuElement(draw_start_icon, tester_func, 'start'),
+            IconMenuElement(draw_start_icon(), tester_func, 'start'),
             IconMenuElement(draw_bluetooth_icon(), CallBacks.bluetooth_enter_callback, 'bluetooth'),
             IconMenuElement(draw_volume_icon(), CallBacks.volume_enter_callback, 'volume')
         ]
@@ -104,11 +90,13 @@ class MainMenu:
             return r
     
     def refresh_bluetooth(self):
+        self.logger.debug('Refresh bluetooth')
         bluetooth_device_list = self.res.list_bt_device()
         bluetooth_ele = [
-            TextMenuElement(device.device_name, CallBacks.wrap_bluetooth_select_callback(self.res, device)) for device in bluetooth_device_list
+            TextMenuElement(text=device.device_name, call_back=CallBacks.wrap_bluetooth_select_callback(self.res, device)) for device in bluetooth_device_list
         ]
         self.bluetooth_menu.item_list = bluetooth_ele
+        self.logger.debug(f'Set bluetooth list to {[f'{t.title}({d.device_name})' for t, d in zip(bluetooth_ele, bluetooth_device_list)]}')
 
     def loop(self):
         self.logger.info(f'Enter loop with cs: {self.state}, ns: {self.ns}')
@@ -132,13 +120,20 @@ class MainMenu:
 
         self.state = self.ns
         current_menu = self._current_menu()
+        self.logger.debug(f'Selected index: {current_menu.select_index}')
 
+        if self.state == MENU_STATE_ROOT and current_menu.select_index == 1:
+            if self.res.bt_device == None:
+                current_menu.item_list[1].img = cross(draw_bluetooth_icon())
+            else:
+                current_menu.item_list[1].img = check(draw_bluetooth_icon())
         self.res.oled_img(current_menu.list_img())
 
         def confirm():
             self.ns = current_menu.select()
 
         btn = self.res.read_btn()
+        self.logger.info(f'Got btn {btn}')
         btn_events = {
             BTN_UP: current_menu.move_up,
             BTN_CONFIRM: confirm,

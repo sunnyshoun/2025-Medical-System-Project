@@ -63,20 +63,25 @@ class ResourceDummy(IResource):
     def play_async(self, file_name: str, language: str, wait_time: int = 0):
         self.logger.debug(f'Playing: \"{file_name}\", lang: \"{language}\"')
 
-    def list_bt_device(self) -> Device:
+    def list_bt_device(self) -> list[Device]:
         d = [
             Device('asdasd', 'FF:FF:FF:FF:FF:F0'),
             Device('asdasdasdasdasd', 'FF:FF:FF:FF:FF:F1'),
             Device('ㄚㄚㄚㄚㄚㄚ', 'FF:FF:FF:FF:FF:F2'),
             Device('ㄚ1ㄚㄚㄚㄚㄚㄚ1', 'FF:FF:FF:FF:FF:F3')
         ]
-        self.logger.debug('Using testing bt devices')
+        self.logger.debug(f'Using testing bt devices: {", ".join([t.device_name for t in [*d]])}')
 
         return d
     
     def connect_bt_device(self, device: Device):
         self.logger.info(f'connect to {device.device_name}')
-        return True
+        if device.device_name == 'default':
+            self.bt_device = None
+            return False
+        else:
+            self.bt_device = device
+            return True
     
     def set_volume(self, volume: int):
         self.logger.info(f'Set volume to {volume}%')

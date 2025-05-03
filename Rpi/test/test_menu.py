@@ -13,6 +13,7 @@ logging.basicConfig(level='DEBUG',
 
 def start_func():
     logging.info('Called `start_func`')
+    return MENU_STATE_ROOT
 
 menu = MainMenu(start_func, ResourceDummy())
 
