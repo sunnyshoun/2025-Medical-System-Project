@@ -1,3 +1,22 @@
+from setting import *
+
 RES_READ_BTN_YIELDING = [
-    0,1,2,2,2,2,2,2,1,2,2,1,2,2,1,0,0,1
+    BTN_UP,
+    BTN_CONFIRM,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_CONFIRM,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_CONFIRM,
+    BTN_DOWN,
+    BTN_DOWN,
+    BTN_CONFIRM,
+    BTN_UP,
+    BTN_UP,
+    BTN_CONFIRM
 ]
