@@ -122,4 +122,18 @@ class Resource(IResource):
         return super().get_volume()
     
     def read_btn(self):
-        raise NotImplementedError()
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        btn_pins = [BTN_UP, BTN_CONFIRM, BTN_DOWN]
+
+        for pin in btn_pins:
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        try:
+            while True:
+                for pin in btn_pins:
+                    if not GPIO.input(pin):
+                        return pin
+                time.sleep(0.01)
+        finally:
+            GPIO.cleanup()
