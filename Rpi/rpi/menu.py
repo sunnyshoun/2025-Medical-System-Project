@@ -26,19 +26,15 @@ class CallBacks:
     @classmethod
     def wrap_bluetooth_select_callback(cls, res: IResource, bt_device: Device, menu: 'MainMenu') -> Callable[[], int]:
         def wrapped() -> int:
-            # 啟動動畫線程
             animation_thread = threading.Thread(target=menu.show_loading_animation)
             animation_thread.start()
-            # 執行藍牙連線
             if res.connect_bt_device(bt_device):
                 res.bt_device = bt_device
                 cls.logger.info(f'Connect to \"{bt_device.device_name}\"')
             else:
                 res.bt_device = None
                 cls.logger.info(f'Fail to connect \"{bt_device.device_name}\"')
-            # 停止動畫
             menu.stop_loading_animation()
-            # 等待動畫線程結束
             animation_thread.join()
             return MENU_STATE_ROOT
         return wrapped
@@ -87,10 +83,9 @@ class MainMenu:
         self.refresh_bluetooth()
 
     def show_loading_animation(self):
-        """顯示5個圓點向上跳動動畫（20 FPS）"""
         self.logger.info('Starting loading animation')
         self.is_loading = True
-        frame_interval = 0.05  # 20 FPS
+        frame_interval = 0.05
         frame_count = len(self.loading_frames)
         frame_index = 0
         while self.is_loading:
@@ -101,7 +96,6 @@ class MainMenu:
             time.sleep(frame_interval)
 
     def stop_loading_animation(self):
-        """停止動畫"""
         self.logger.info('Stopping loading animation')
         self.is_loading = False
         self.res.oled_clear()
@@ -110,14 +104,41 @@ class MainMenu:
     def refresh_bluetooth(self):
         self.logger.debug('Refresh bluetooth')
         bluetooth_device_list = self.res.list_bt_device()
-        bluetooth_ele = [
-            TextMenuElement(
-                text=device.device_name,
-                call_back=CallBacks.wrap_bluetooth_select_callback(self.res, device, self)
-            ) for device in bluetooth_device_list
-        ]
+        
+        current_device_name = None
+        if self.bluetooth_menu.item_list and 0 <= self.bluetooth_menu.select_index < len(self.bluetooth_menu.item_list):
+            current_device_name = self.bluetooth_menu.item_list[self.bluetooth_menu.select_index].title
+
+        if not bluetooth_device_list:
+            bluetooth_ele = [TextMenuElement("No Devices", lambda: MENU_STATE_BT)]
+            self.logger.debug('No Bluetooth devices found, setting placeholder')
+        else:
+            bluetooth_ele = [
+                TextMenuElement(
+                    text=device.device_name,
+                    call_back=CallBacks.wrap_bluetooth_select_callback(self.res, device, self)
+                ) for device in bluetooth_device_list
+            ]
+
         self.bluetooth_menu.item_list = bluetooth_ele
-        self.logger.debug(f'Set bluetooth list to {[f"{t.title}({d.device_name})" for t, d in zip(bluetooth_ele, bluetooth_device_list)]}')
+
+        if current_device_name:
+            for i, item in enumerate(bluetooth_ele):
+                if item.title == current_device_name:
+                    self.bluetooth_menu.select_index = i
+                    self.logger.debug(f'Restored selection to "{current_device_name}" at index {i}')
+                    break
+            else:
+                self.bluetooth_menu.select_index = 0
+                self.logger.debug(f'Device "{current_device_name}" not found, reset to index 0')
+        else:
+            self.bluetooth_menu.select_index = 0
+
+        if self.bluetooth_menu.select_index >= len(self.bluetooth_menu.item_list):
+            self.bluetooth_menu.select_index = max(0, len(self.bluetooth_menu.item_list) - 1)
+            self.logger.debug(f'Adjusted select_index to {self.bluetooth_menu.select_index}')
+
+        self.logger.debug(f'Set bluetooth list to {[item.title for item in bluetooth_ele]}')
 
     def _current_menu(self) -> Menu:
         menus = {
@@ -195,7 +216,8 @@ class MainMenu:
         self.logger.info('Change to bt')
         self.refresh_bluetooth()
         try:
-            self.bluetooth_menu.select_index = self.bluetooth_menu.item_list.index(get_config_value('HEADPHONE_DEVICE_MAC'))
+            self.bluetooth_menu.select_index = next(i for i, item in enumerate(self.bluetooth_menu.item_list) 
+                                                  if item.title == get_config_value('HEADPHONE_DEVICE_MAC'))
         except:
             self.bluetooth_menu.select_index = 0
     

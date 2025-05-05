@@ -44,9 +44,9 @@ class Menu:
             self.logger.info('Cannot move down')
 
     def select(self) -> int:
-        """
-        Call the call back func and return ns
-        """
+        if not self.item_list:
+            self.logger.info('No items in menu, staying in current state')
+            return MENU_STATE_BT
         return self.item_list[self.select_index].call_back()
 
     def list_img(self) -> Image:
@@ -55,38 +55,37 @@ class Menu:
         draw.rectangle((0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), outline=0, fill=0)
         
         mid_pixel = (SCREEN_HEIGHT - self.item_height) // 2
-        img.paste(self.item_list[self.select_index].indicate(), (0, mid_pixel))
-        self.logger.debug(f'Place selected item \"{self.item_list[self.select_index].title}\" at {mid_pixel}')
+        if self.item_list:
+            img.paste(self.item_list[self.select_index].indicate(), (0, mid_pixel))
+            self.logger.debug(f'Place selected item \"{self.item_list[self.select_index].title}\" at {mid_pixel}')
 
-        offset_pixel = mid_pixel - self.item_height
-        offset_index = self.select_index - 1
-        while (offset_pixel > 0) and (offset_index >= 0):
-            img.paste(self.item_list[offset_index].img, (0, offset_pixel))
-            offset_pixel -= self.item_height
-            offset_index -= 1
-            
-        offset_pixel = mid_pixel + self.item_height
-        offset_index = self.select_index + 1
-        while (offset_pixel < SCREEN_HEIGHT - self.item_height) and (offset_index < len(self.item_list)):
-            img.paste(self.item_list[offset_index].img, (0, offset_pixel))
-            offset_pixel += self.item_height
-            offset_index += 1
+            offset_pixel = mid_pixel - self.item_height
+            offset_index = self.select_index - 1
+            while (offset_pixel > 0) and (offset_index >= 0):
+                img.paste(self.item_list[offset_index].img, (0, offset_pixel))
+                offset_pixel -= self.item_height
+                offset_index -= 1
+                
+            offset_pixel = mid_pixel + self.item_height
+            offset_index = self.select_index + 1
+            while (offset_pixel < SCREEN_HEIGHT - self.item_height) and (offset_index < len(self.item_list)):
+                img.paste(self.item_list[offset_index].img, (0, offset_pixel))
+                offset_pixel += self.item_height
+                offset_index += 1
 
-        # 向上三角形（右上角）
         if self.select_index > 0 and not self.hide_arrow:
             up_triangle = [
-                (SCREEN_WIDTH - 3, 2),          # 頂點（上方中央）
-                (SCREEN_WIDTH - 5, 6),          # 左下角
-                (SCREEN_WIDTH - 1, 6)           # 右下角
+                (SCREEN_WIDTH - 3, 2),
+                (SCREEN_WIDTH - 5, 6),
+                (SCREEN_WIDTH - 1, 6)
             ]
             draw.polygon(up_triangle, fill=255)
 
-        # 向下三角形（右下角）
         if self.select_index < len(self.item_list) - 1 and not self.hide_arrow:
             down_triangle = [
-                (SCREEN_WIDTH - 3, SCREEN_HEIGHT - 2),     # 頂點（下方中央）
-                (SCREEN_WIDTH - 5, SCREEN_HEIGHT - 6),     # 左上角
-                (SCREEN_WIDTH - 1, SCREEN_HEIGHT - 6)      # 右上角
+                (SCREEN_WIDTH - 3, SCREEN_HEIGHT - 2),
+                (SCREEN_WIDTH - 5, SCREEN_HEIGHT - 6),
+                (SCREEN_WIDTH - 1, SCREEN_HEIGHT - 6)
             ]
             draw.polygon(down_triangle, fill=255)
             
