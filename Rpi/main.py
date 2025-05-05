@@ -10,6 +10,8 @@ import logging, os, datetime
 if __name__ == '__main__':
     from rpi.resource import Resource
     res = Resource()
+    res.oled_clear()
+    res.oled_display()
     logging.getLogger('Adafruit_I2C.Device.Bus.1.Address.0X3C').setLevel(logging.WARNING)
     
     def start_func():
