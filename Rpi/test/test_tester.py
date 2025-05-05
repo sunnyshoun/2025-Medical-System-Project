@@ -1,5 +1,5 @@
 from rpi.models import VisionTest
-from rpi.tester import main
+from rpi.tester import make_test
 from setting import *
 from test_model import ResourceDummy
 import logging, os
@@ -11,4 +11,4 @@ logging.basicConfig(level='DEBUG',
                     filename='.log')
 res = ResourceDummy()
 os.chdir('./Rpi')
-main(VisionTest(res))
+make_test(VisionTest(res))

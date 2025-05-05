@@ -90,15 +90,11 @@ def loop(t: VisionTest):
         raise ValueError(f'Unexpected state code: {t.state}')
 
     
-def end(t: VisionTest, wait: int = 0):
+def end(t: VisionTest):
     logger.info('End section')
     t.close()
-    logger.info(f'Exit after {wait} s')
-    time.sleep(wait)
-    t.res.oled_clear()
-    t.res.oled_display()
 
-def main(vision_test_obj: VisionTest, wait: int = 0):
+def make_test(vision_test_obj: VisionTest):
     try:
         setup(vision_test_obj)
 
@@ -117,7 +113,7 @@ def main(vision_test_obj: VisionTest, wait: int = 0):
         logger.info('Catch KeyboardInterrupt')
         
     finally:
-        end(vision_test_obj, wait)
+        end(vision_test_obj)
 
 if __name__ == '__main__':
 

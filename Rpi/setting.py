@@ -9,10 +9,11 @@ RECOGNITION_FAIL_FILE = 'recognition_failed.wav'
 
 TEST_START_DEGREE = 0.5
 TEST_START_DISTANCE = 0.1
-TEST_SHOW_DURATION = 10
 
-LOGGER_FORMAT = "%(name)-11s:%(levelname)-7s: %(message)s"
+LOGGER_FORMAT = '%(name)-11s:%(levelname)-7s: %(message)s'
 LOGGER_LEVEL = 'DEBUG'
+LOG_FOLDER = './.log/'
+LOG_TIME_FORMAT = '%y%m%d_%H%M%S'
 
 GPIO_SONIC_TRIGGER = 23
 GPIO_SONIC_ECHO = 24
