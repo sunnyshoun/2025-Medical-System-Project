@@ -13,6 +13,8 @@ if __name__ == '__main__':
     logging.getLogger('Adafruit_I2C.Device.Bus.1.Address.0X3C').setLevel(logging.WARNING)
     
     def start_func():
+        res.oled_clear()
+        res.oled_display()
         test = VisionTest(res)
         make_test(test)
         res.read_btn()
@@ -22,7 +24,7 @@ if __name__ == '__main__':
 
     log_name = datetime.datetime.strftime(datetime.datetime.now(), LOG_TIME_FORMAT)
 
-    if SVAE_LOG:
+    if SAVE_LOG:
         logging.basicConfig(
             level=LOGGER_LEVEL, 
             format=LOGGER_FORMAT,

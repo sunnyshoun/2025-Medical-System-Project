@@ -4,14 +4,12 @@ from setting import *
 from PIL.Image import Image, new
 from PIL import ImageDraw, ImageFont
 
-class Menu: ...
-
 class MenuElement:
     img: Image
     title: str
     call_back: Callable[[], int]
 
-    def __init__(self, img: Image, call_back: Callable[[], int], title = None):
+    def __init__(self, img: Image, call_back: Callable[[], int], title=None):
         self.img = img
         self.call_back = call_back
         self.title = title
@@ -21,12 +19,14 @@ class MenuElement:
 
 class Menu:
     select_index: int
+    hide_arrow: bool
     item_list: list[MenuElement]
     item_height: int
     logger = logging.getLogger('Menu')
     logger.setLevel(LOGGER_LEVEL)
 
     def __init__(self, item_list: list[MenuElement], item_height: int):
+        self.hide_arrow = False
         self.select_index = 0
         self.item_list = item_list
         self.item_height = item_height
@@ -47,7 +47,6 @@ class Menu:
         """
         Call the call back func and return ns
         """
-        
         return self.item_list[self.select_index].call_back()
 
     def list_img(self) -> Image:
@@ -73,25 +72,21 @@ class Menu:
             offset_pixel += self.item_height
             offset_index += 1
 
-        # indicator
-
         # 向上三角形（右上角）
-        # 以右上角為基準，畫一個底為5，高為5的向上三角形
-        if self.select_index > 0:
+        if self.select_index > 0 and not self.hide_arrow:
             up_triangle = [
-                (SCREEN_WIDTH - 3, 0),          # 頂點（上方中央）
-                (SCREEN_WIDTH - 6, 5),          # 左下角
-                (SCREEN_WIDTH, 5)               # 右下角
+                (SCREEN_WIDTH - 3, 2),          # 頂點（上方中央）
+                (SCREEN_WIDTH - 5, 6),          # 左下角
+                (SCREEN_WIDTH - 1, 6)           # 右下角
             ]
             draw.polygon(up_triangle, fill=255)
 
         # 向下三角形（右下角）
-        # 以右下角為基準，畫一個底為5，高為5的向下三角形
-        if self.select_index < len(self.item_list) - 1:
+        if self.select_index < len(self.item_list) - 1 and not self.hide_arrow:
             down_triangle = [
-                (SCREEN_WIDTH - 3, SCREEN_HEIGHT),     # 頂點（下方中央）
-                (SCREEN_WIDTH - 6, SCREEN_HEIGHT - 5), # 左上角
-                (SCREEN_WIDTH, SCREEN_HEIGHT - 5)      # 右上角
+                (SCREEN_WIDTH - 3, SCREEN_HEIGHT - 2),     # 頂點（下方中央）
+                (SCREEN_WIDTH - 5, SCREEN_HEIGHT - 6),     # 左上角
+                (SCREEN_WIDTH - 1, SCREEN_HEIGHT - 6)      # 右上角
             ]
             draw.polygon(down_triangle, fill=255)
             
@@ -122,7 +117,6 @@ class TextMenuElement(MenuElement):
         return paste_text
 
     def __init__(self, text: str, call_back: Callable[[], int]):
-        
         img = new('1', (128, MENU_TEXT_HEIGHT))
         draw = ImageDraw.Draw(img)
         font = ImageFont.truetype(**MENU_FONT)
@@ -155,5 +149,3 @@ class IconMenuElement(MenuElement):
 
     def indicate(self) -> Image:
         return self.img
-
-

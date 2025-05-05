@@ -9,19 +9,42 @@ from .classes import Device
 
 logger = logging.getLogger('deviceManager')
 
+# 新增自定義異常類
+class BluetoothStartError(Exception):
+    """拋出當藍牙掃描啟動失敗時"""
+    pass
+
+class BluetoothStopError(Exception):
+    """拋出當藍牙掃描停止失敗時"""
+    pass
+
 class BluetoothScanner:
     """藍牙設備掃描器，支援連續掃描和設備列舉"""
     
     def __init__(self):
         self.bus = dbus.SystemBus()
+        logger.info('BluetoothScanner initialized, starting scan')
+        self.start()  # 自動啟動掃描
+    
+    def __del__(self):
+        """在對象銷毀時自動停止掃描"""
+        logger.info('BluetoothScanner being destroyed, stopping scan')
+        try:
+            self.stop()
+        except BluetoothStopError as e:
+            logger.error(f'Failed to stop scan during destruction: {e}')
     
     def _get_adapter_iface(self):
         """獲取藍牙適配器介面"""
-        adapter = self.bus.get_object('org.bluez', '/org/bluez/hci0')
-        return (
-            dbus.Interface(adapter, 'org.bluez.Adapter1'),
-            dbus.Interface(adapter, 'org.freedesktop.DBus.Properties')
-        )
+        try:
+            adapter = self.bus.get_object('org.bluez', '/org/bluez/hci0')
+            return (
+                dbus.Interface(adapter, 'org.bluez.Adapter1'),
+                dbus.Interface(adapter, 'org.freedesktop.DBus.Properties')
+            )
+        except Exception as e:
+            logger.error(f"Failed to get adapter interface: {e}")
+            raise BluetoothStartError(f"Cannot access Bluetooth adapter: {e}")
     
     def start(self):
         """啟動藍牙掃描"""
@@ -29,11 +52,13 @@ class BluetoothScanner:
             adapter_iface, props_iface = self._get_adapter_iface()
             if not props_iface.Get('org.bluez.Adapter1', 'Powered'):
                 props_iface.Set('org.bluez.Adapter1', 'Powered', True)
+                logger.info('Bluetooth adapter powered on')
             if not props_iface.Get('org.bluez.Adapter1', 'Discovering'):
                 adapter_iface.StartDiscovery()
+                logger.info('Bluetooth scan started')
         except Exception as e:
-            logger.error(f"啟動掃描失敗: {e}")
-            raise
+            logger.error(f"Failed to start Bluetooth scan: {e}")
+            raise BluetoothStartError(f"Bluetooth scan start failed: {e}")
     
     def list_devices(self) -> List[Device]:
         """列出可連線的藍牙設備，排除名稱為 'Unknown' 的設備"""
@@ -61,8 +86,9 @@ class BluetoothScanner:
                 )
                 if device not in devices:
                     devices.append(device)
+            logger.debug(f"Found {len(devices)} Bluetooth devices")
         except Exception as e:
-            logger.error(f"列出設備失敗: {e}")
+            logger.error(f"Failed to list devices: {e}")
         
         return devices
     
@@ -72,8 +98,12 @@ class BluetoothScanner:
             adapter_iface, props_iface = self._get_adapter_iface()
             if props_iface.Get('org.bluez.Adapter1', 'Discovering'):
                 adapter_iface.StopDiscovery()
+                logger.info('Bluetooth scan stopped')
+            else:
+                logger.debug('Bluetooth scan already stopped')
         except Exception as e:
-            logger.warning(f"停止掃描失敗: {e}")
+            logger.error(f"Failed to stop Bluetooth scan: {e}")
+            raise BluetoothStopError(f"Bluetooth scan stop failed: {e}")
 
 def verify_profile(card_name: str, expected_profile: str) -> bool:
     """驗證當前 profile 是否匹配預期"""

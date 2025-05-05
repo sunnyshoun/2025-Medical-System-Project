@@ -1,27 +1,49 @@
 # 2025-Medical-System-Project
 
-## Directory
+## Raspberry Pi Directory
 
-- Rpi
-  - audio
-    - classes.py
-    - language_detection.py
-    - player.py
-    - recognizer.py
-    - recorder.py
-  - data
-    - draw.py
-    - vision.py
-  - rpi
-    - interrupt.py
-    - models
-      - Menus.py
-      - Testers.py
-    - resource.py
-    - tester.py
-  - test
-    - bunch of testing ...
-  - setting.py
+```
+Rpi/
+├── audio/
+│   ├── audioFiles/
+│   │   ├── all/
+│   │   ├── en/
+│   │   ├── jp/
+│   │   ├── tw/
+│   │   ├── zh/
+│   ├── __init__.py
+│   ├── classes.py
+│   ├── language_detection.py
+│   ├── player.py
+│   ├── recognizer.py
+│   ├── recorder.py
+├── bluetooth/
+│   ├── __init__.py
+│   ├── classes.py
+│   ├── device_manager.py
+├── data/
+│   ├── __init__.py
+│   ├── draw.py
+│   ├── NotoSansCJK-Regular.ttc
+│   ├── vision.py
+├── rpi/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── menus.py
+│   │   ├── testers.py
+│   ├── __init__.py
+│   ├── interrupt.py
+│   ├── menu.py
+│   ├── resource.py
+│   ├── tester.py
+├── test/
+│   ├── bunch of testing ...
+├── config_manager.py
+├── config.json
+├── main.py (Program Entrance)
+├── requirements.txt
+├── setting.py
+```
 
 ## Note
 

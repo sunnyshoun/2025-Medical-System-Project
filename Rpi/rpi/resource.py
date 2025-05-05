@@ -29,11 +29,6 @@ class Resource(IResource):
 
         self.ser = serial.Serial(**RPI_SERIAL)
         self.bt_device = None
-        try:
-            self.scanner.stop()
-            self.scanner.start()
-        except:
-            pass
 
     def close(self):
         self.ser.close()
@@ -119,8 +114,11 @@ class Resource(IResource):
         return devices
     
     def connect_bt_device(self, device: Device):
-        return connect_device(device)
-    
+        if connect_device(device):
+            self.bt_device = device
+            return True
+        return False
+
     def set_volume(self, volume: int):
         return set_device_volume(volume)
     
@@ -137,8 +135,8 @@ class Resource(IResource):
                 for pin in btn_pins:
                     if not GPIO.input(pin):
                         while not GPIO.input(pin):
-                            time.sleep(0.01)
+                            time.sleep(0.05)
                         return pin
-                time.sleep(0.01)
+                time.sleep(0.05)
         finally:
             GPIO.cleanup()

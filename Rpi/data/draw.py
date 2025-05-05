@@ -1,3 +1,4 @@
+import math
 from PIL import Image, ImageDraw
 
 def draw_circle_with_right_opening(thickness=10, save_as=None, background=0):
@@ -38,6 +39,37 @@ def paste_square_image_centered(src_img: Image.Image, target_size=(128, 64), bac
     canvas.paste(src_img, (x_offset, y_offset))
 
     return canvas
+
+def draw_loading_frames() -> list[Image.Image]:
+    """生成5個圓點向上跳動的動畫（12幀，20 FPS）"""
+    frames = []
+    num_dots = 5  # 圓點數量
+    dot_radius = 4  # 圓點半徑
+    spacing = 16  # 圓點間距（減小以避免裁切）
+    jump_height = 10  # 最大跳動高度
+    frame_count = 12  # 總幀數
+    size = spacing * (num_dots - 1) + dot_radius * 2 + 8  # 畫布寬度，增加8像素邊距
+    base_y = 32  # 基準Y座標（螢幕中心）
+    for frame in range(frame_count):
+        img = Image.new('L', (size, size), 0)
+        draw = ImageDraw.Draw(img)
+        phase = frame * (2 * math.pi / frame_count)  # 每幀相位
+        offset_x = dot_radius + 6  # 左邊距，增加到6像素
+        for i in range(num_dots):
+            # 計算圓點X座標（水平排列）
+            x = offset_x + i * spacing
+            # 計算圓點Y座標（正弦波跳動）
+            offset = (i * 2 * math.pi / num_dots) + phase
+            y_offset = math.sin(offset) * jump_height
+            y = base_y - y_offset  # 向上跳動（Y減小）
+            draw.ellipse(
+                [x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius],
+                fill=255
+            )
+        # 貼到128x64畫布中央
+        canvas = paste_square_image_centered(img, target_size=(128, 64))
+        frames.append(canvas)
+    return frames
 
 def draw_bluetooth_icon() -> Image.Image:
     img = Image.new('1', (128, 64), 0)
