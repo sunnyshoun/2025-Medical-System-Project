@@ -96,7 +96,7 @@ class MainMenu:
             TextMenuElement(text=device.device_name, call_back=CallBacks.wrap_bluetooth_select_callback(self.res, device)) for device in bluetooth_device_list
         ]
         self.bluetooth_menu.item_list = bluetooth_ele
-        self.logger.debug(f'Set bluetooth list to {[f'{t.title}({d.device_name})' for t, d in zip(bluetooth_ele, bluetooth_device_list)]}')
+        self.logger.debug(f'Set bluetooth list to {[f"{t.title}({d.device_name})" for t, d in zip(bluetooth_ele, bluetooth_device_list)]}')
 
     def loop(self):
         self.logger.info(f'Enter loop with cs: {self.state}, ns: {self.ns}')
@@ -127,16 +127,16 @@ class MainMenu:
                 current_menu.item_list[1].img = cross(draw_bluetooth_icon())
             else:
                 current_menu.item_list[1].img = check(draw_bluetooth_icon())
-        self.res.oled_img(current_menu.list_img())
 
-        def confirm():
-            self.ns = current_menu.select()
+        self.res.oled_clear()
+        self.res.oled_img(current_menu.list_img())
+        self.res.oled_display()
 
         btn = self.res.read_btn()
         self.logger.info(f'Got btn {btn}')
         btn_events = {
             BTN_UP: current_menu.move_up,
-            BTN_CONFIRM: confirm,
+            BTN_CONFIRM: current_menu.select,
             BTN_DOWN: current_menu.move_down
         }
         callee = btn_events.get(btn)

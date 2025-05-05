@@ -14,6 +14,7 @@ LOGGER_FORMAT = '%(name)-11s:%(levelname)-7s: %(message)s'
 LOGGER_LEVEL = 'DEBUG'
 LOG_FOLDER = './.log/'
 LOG_TIME_FORMAT = '%y%m%d_%H%M%S'
+SVAE_LOG = False
 
 GPIO_SONIC_TRIGGER = 23
 GPIO_SONIC_ECHO = 24
@@ -62,4 +63,4 @@ MENU_STATE_VOLUME = 2
 
 BTN_UP = 16
 BTN_CONFIRM = 20
-BTN_DOWN = 31
+BTN_DOWN = 21

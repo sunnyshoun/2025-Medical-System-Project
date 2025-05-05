@@ -24,6 +24,7 @@ class Menu:
     item_list: list[MenuElement]
     item_height: int
     logger = logging.getLogger('Menu')
+    logger.setLevel(LOGGER_LEVEL)
 
     def __init__(self, item_list: list[MenuElement], item_height: int):
         self.select_index = 0

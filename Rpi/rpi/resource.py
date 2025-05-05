@@ -6,7 +6,7 @@ from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
 from audio.player import audio_player
 from audio.classes import Language
-from bluetooth.device_manager import BluetoothScanner, set_device_volume
+from bluetooth.device_manager import BluetoothScanner, set_device_volume, connect_device
 from bluetooth.classes import Device
 import time, Adafruit_SSD1306, serial, logging
 from PIL.Image import Image
@@ -14,6 +14,8 @@ from PIL.Image import Image
 class Resource(IResource):
     disp: Adafruit_SSD1306.SSD1306_128_64
     scanner: BluetoothScanner
+    ser: serial.Serial
+    bt_device: Device
     logger = logging.getLogger('Resource')
     logger.setLevel(LOGGER_LEVEL)
 
@@ -26,6 +28,12 @@ class Resource(IResource):
         self.scanner = BluetoothScanner()
 
         self.ser = serial.Serial(**RPI_SERIAL)
+        self.bt_device = None
+        try:
+            self.scanner.stop()
+            self.scanner.start()
+        except:
+            pass
 
     def close(self):
         self.ser.close()
@@ -107,19 +115,14 @@ class Resource(IResource):
         return audio_player.play_async(file_name, language, wait_time)
     
     def list_bt_device(self):
-        self.scanner.start()
         devices = self.scanner.list_devices()
-        self.scanner.stop()
         return devices
     
     def connect_bt_device(self, device: Device):
-        return super().connect_bt_device(device)
+        return connect_device(device)
     
     def set_volume(self, volume: int):
         return set_device_volume(volume)
-    
-    def get_volume(self):
-        return super().get_volume()
     
     def read_btn(self):
         GPIO.setmode(GPIO.BCM)
@@ -133,6 +136,8 @@ class Resource(IResource):
             while True:
                 for pin in btn_pins:
                     if not GPIO.input(pin):
+                        while not GPIO.input(pin):
+                            time.sleep(0.01)
                         return pin
                 time.sleep(0.01)
         finally:
