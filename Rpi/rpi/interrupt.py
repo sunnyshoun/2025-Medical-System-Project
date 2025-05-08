@@ -1,5 +1,6 @@
 from .models import InterruptException, VisionTest
 from audio.classes import Language
+from audio.player import audio_player
 from setting import *
 from data import vision
 from data.draw import draw_circle_with_right_opening, paste_square_image_centered
@@ -61,6 +62,7 @@ class Interrupt:
             raise ValueError(f'Unexpected response from start move: {resp}')
 
         cls.wait_mov(test)
+        audio_player.wait_play_done()
 
     @classmethod
     def _handle_show_img(cls, test: VisionTest):

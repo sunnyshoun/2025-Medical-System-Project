@@ -22,6 +22,7 @@ def setup(t: VisionTest):
     while t.lang == None:
         t.lang = Interrupt.lang_resp(t)
         time.sleep(1)
+        
     logger.info(f'Set language to: {t.lang.lang_code}')
     t.res.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
 

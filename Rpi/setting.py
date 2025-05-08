@@ -14,7 +14,7 @@ LOGGER_FORMAT = '%(name)-11s:%(levelname)-7s: %(message)s'
 LOGGER_LEVEL = 'DEBUG'
 LOG_FOLDER = './.log/'
 LOG_TIME_FORMAT = '%y%m%d_%H%M%S'
-SAVE_LOG = False
+SAVE_LOG = True
 
 GPIO_SONIC_TRIGGER = 23
 GPIO_SONIC_ECHO = 24

@@ -33,6 +33,7 @@ def detect_language(recorder: AudioRecorder, timeout_seconds: float = 30.0) -> L
         for lang in LANGUAGE_MODELS.values():
             result = Recognizer(lang).recognize(wav_file)
             if result and result != "<{silent}>":
+                print("aaaa result:", result)
                 for keyword, detected_code in language_keywords.items():
                     if keyword in result:
                         return LANGUAGE_MODELS[detected_code]

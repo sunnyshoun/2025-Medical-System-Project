@@ -81,6 +81,10 @@ class AudioRecorder:
             return False
 
     def record_speech(self, max_duration: float = 5.0, silence_threshold: float = 0.5, min_speech_duration: float = 0.3) -> Optional[str]:
+        file_path = os.path.join(self.audio_dir, "record.wav")
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        
         self.start()
         frames, is_speaking, silence_start, speech_start = [], False, None, None
         start_time = time.time()
