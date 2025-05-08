@@ -1,4 +1,5 @@
 import time
+import threading
 from .models import Menu, TextMenuElement, IconMenuElement, IResource, VisionTest
 from data.draw import draw_bluetooth_icon, draw_start_icon, draw_volume_icon, cross, check, draw_loading_frames
 from bluetooth.classes import Device
@@ -6,9 +7,7 @@ from config_manager import get_config_value
 from setting import *
 import logging
 from typing import Callable
-from PIL.Image import Image, new
-from PIL import ImageDraw, ImageFont
-import threading
+from PIL.Image import Image
 
 class CallBacks:
     logger = logging.getLogger('CallBacks')
@@ -56,9 +55,13 @@ class MainMenu:
     res: IResource
     logger = logging.getLogger('MainMenu')
     logger.setLevel(LOGGER_LEVEL)
-    last_bt_refresh: float
     loading_frames: list[Image]
     is_loading: bool
+    update_thread: threading.Thread  # 後台更新線程
+    stop_update: threading.Event  # 控制更新線程停止
+    is_navigating: bool  # 標記是否正在上下切換
+    navigation_timer: threading.Timer  # 延遲重置 is_navigating
+    oled_lock: threading.Lock  # OLED 訪問鎖
 
     def __init__(self, tester_func: Callable[[], int], res: IResource):
         root_ele = [
@@ -75,12 +78,42 @@ class MainMenu:
         self.state = MENU_STATE_ROOT
         self.ns = MENU_STATE_ROOT
         self.res = res
-        self.last_bt_refresh = 0
         self.loading_frames = draw_loading_frames()
         self.is_loading = False
+        self.stop_update = threading.Event()
+        self.is_navigating = False
+        self.navigation_timer = None
+        self.oled_lock = threading.Lock()
         default_device = Device('default', get_config_value('HEADPHONE_DEVICE_MAC') or 'none')
         self.logger.info(f'Connect to default device: {self.res.connect_bt_device(default_device)}')
         self.refresh_bluetooth()
+
+    def start_bluetooth_update(self):
+        """啟動後台線程，每 3 秒更新藍牙設備列表"""
+        self.stop_update.clear()
+        self.update_thread = threading.Thread(target=self._update_bluetooth_loop)
+        self.update_thread.daemon = True
+        self.update_thread.start()
+        self.logger.info("Started bluetooth update thread")
+
+    def stop_bluetooth_update(self):
+        self.stop_update.set()
+        self.logger.info("Requested stop for bluetooth update thread")
+
+    def _update_bluetooth_loop(self):
+        """後台循環，每 3 秒更新藍牙設備列表"""
+        while not self.stop_update.is_set():
+            if self.state == MENU_STATE_BT and not self.is_loading and not self.is_navigating:
+                if not self.stop_update.is_set():
+                    self.logger.debug("Conditions met, refreshing bluetooth")
+                    self.refresh_bluetooth()
+            time.sleep(3)
+
+    def _reset_navigation(self):
+        """重置 is_navigating 標誌，恢復自動更新"""
+        self.is_navigating = False
+        self.logger.debug("Navigation ended, resuming bluetooth updates")
+        self.navigation_timer = None
 
     def show_loading_animation(self):
         self.logger.info('Starting loading animation')
@@ -89,17 +122,19 @@ class MainMenu:
         frame_count = len(self.loading_frames)
         frame_index = 0
         while self.is_loading:
-            self.res.oled_clear()
-            self.res.oled_img(self.loading_frames[frame_index])
-            self.res.oled_display()
+            with self.oled_lock:
+                self.res.oled_clear()
+                self.res.oled_img(self.loading_frames[frame_index])
+                self.res.oled_display()
             frame_index = (frame_index + 1) % frame_count
             time.sleep(frame_interval)
 
     def stop_loading_animation(self):
         self.logger.info('Stopping loading animation')
         self.is_loading = False
-        self.res.oled_clear()
-        self.res.oled_display()
+        with self.oled_lock:
+            self.res.oled_clear()
+            self.res.oled_display()
 
     def refresh_bluetooth(self):
         self.logger.debug('Refresh bluetooth')
@@ -140,6 +175,13 @@ class MainMenu:
 
         self.logger.debug(f'Set bluetooth list to {[item.title for item in bluetooth_ele]}')
 
+        # 如果在藍牙選單中，重繪畫面
+        if self.state == MENU_STATE_BT:
+            with self.oled_lock:
+                self.res.oled_clear()
+                self.res.oled_img(self.bluetooth_menu.list_img())
+                self.res.oled_display()
+
     def _current_menu(self) -> Menu:
         menus = {
             MENU_STATE_ROOT: self.root_menu,
@@ -153,11 +195,6 @@ class MainMenu:
 
     def loop(self):
         self.logger.info(f'Enter loop with cs: {self.state}, ns: {self.ns}')
-        current_time = time.time()
-        if self.state == MENU_STATE_BT and current_time - self.last_bt_refresh >= 3 and not self.is_loading:
-            self.refresh_bluetooth()
-            self.last_bt_refresh = current_time
-
         if self.res.bt_device is None:
             self.logger.debug('Not connected to device')
             if self.state != MENU_STATE_BT and self.ns != MENU_STATE_BT:
@@ -189,9 +226,10 @@ class MainMenu:
             else:
                 current_menu.item_list[1].img = check(draw_bluetooth_icon())
 
-        self.res.oled_clear()
-        self.res.oled_img(current_menu.list_img())
-        self.res.oled_display()
+        with self.oled_lock:  # 保護 OLED 訪問
+            self.res.oled_clear()
+            self.res.oled_img(current_menu.list_img())
+            self.res.oled_display()
 
         btn = self.res.read_btn()
         self.logger.info(f'Got btn {btn}')
@@ -204,6 +242,13 @@ class MainMenu:
         if callee is None:
             raise ValueError(f'Unknown btn: {btn}')
         else:
+            if btn in (BTN_UP, BTN_DOWN):
+                self.is_navigating = True
+                self.logger.debug("Navigation started, pausing bluetooth updates")
+                if self.navigation_timer is not None:
+                    self.navigation_timer.cancel()
+                self.navigation_timer = threading.Timer(3.0, self._reset_navigation)
+                self.navigation_timer.start()
             next_state = callee()
             if next_state is not None:
                 self.ns = next_state
@@ -215,11 +260,15 @@ class MainMenu:
     def _goto_bt(self):
         self.logger.info('Change to bt')
         self.refresh_bluetooth()
-        try:
-            self.bluetooth_menu.select_index = next(i for i, item in enumerate(self.bluetooth_menu.item_list) 
-                                                  if item.title == get_config_value('HEADPHONE_DEVICE_MAC'))
-        except:
-            self.bluetooth_menu.select_index = 0
-    
+        self.start_bluetooth_update()
+
     def _goto_root(self):
         self.logger.info('Change to root')
+        self.stop_bluetooth_update()
+
+    def __del__(self):
+        """清理資源"""
+        self.stop_bluetooth_update()
+        if self.navigation_timer is not None:
+            self.navigation_timer.cancel()
+        self.logger.info("MainMenu destroyed")
