@@ -136,9 +136,14 @@ Rpi/
 │   │   ├── __init__.py
 │   │   ├── draw.py
 │   │   ├── vision.py
-│   │   ├── fonts/                # 將字型檔案集中到子目錄
-│   │   │   ├── NotoSansCJK-Regular.ttc
-│   ├── rpi/                      # 樹莓派硬體相關模組
+│   │   ├── NotoSansCJK-Regular.ttc
+│   ├── hardwares/                # 樹莓派硬體相關模組
+│   │   ├── __init__.py
+│   │   ├── motor.py
+│   │   ├── oled.py
+│   │   ├── sonic.py
+│   │   ├── button.py
+│   ├── rpi/                      # 樹莓派軟體相關模組
 │   │   ├── __init__.py
 │   │   ├── models/               # 將 models 目錄保留
 │   │   │   ├── __init__.py
