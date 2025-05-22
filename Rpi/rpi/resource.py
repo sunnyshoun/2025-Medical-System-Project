@@ -30,50 +30,6 @@ class Resource(IResource):
         self.ser = serial.Serial(**RPI_SERIAL)
         self.bt_device = None
 
-    def close(self):
-        self.ser.close()
-
-    def get_distance(self) -> float:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(GPIO_SONIC_TRIGGER, GPIO.OUT)
-        GPIO.setup(GPIO_SONIC_ECHO, GPIO.IN)
-
-        # Ensure trigger is low
-        GPIO.output(GPIO_SONIC_TRIGGER, False)
-        time.sleep(0.05)
-
-        # Send 10us pulse
-        GPIO.output(GPIO_SONIC_TRIGGER, True)
-        time.sleep(0.00001)
-        GPIO.output(GPIO_SONIC_TRIGGER, False)
-
-        # Wait for echo to go high
-        start_time = time.time()
-        while GPIO.input(GPIO_SONIC_ECHO) == 0 and time.time() - start_time < GPIO_SONIC_TIMEOUT:
-            start = time.time()
-
-        # Wait for echo to go low
-        start_time = time.time()
-        while GPIO.input(GPIO_SONIC_ECHO) == 1 and time.time() - start_time < GPIO_SONIC_TIMEOUT:
-            end = time.time()
-
-        GPIO.cleanup()
-
-        try:
-            time_elapsed = end - start
-            distance = (time_elapsed * SONIC_SPEED) / 2
-            return distance
-        except:
-            return -1.0  # error value if timing failed
-    
-    def oled_display(self):
-        self.disp.display()
-    
-    def oled_clear(self):
-        self.disp.clear()
-
-    def oled_img(self, img: Image):
-        self.disp.image(img.convert('1'))
     
     def get_test_resp(self, lang: Language):
         recorder = AudioRecorder()
@@ -118,4 +74,3 @@ class Resource(IResource):
             self.bt_device = device
             return True
         return False
-
