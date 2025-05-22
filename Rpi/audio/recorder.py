@@ -115,3 +115,5 @@ class AudioRecorder:
                 wf.writeframes(b''.join(frames))
             return file_path
         return None
+
+audio_recorder = AudioRecorder()

@@ -5,7 +5,7 @@ from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
 from audio.language_detection import detect_language
 from audio.player import audio_player
-from audio.classes import Language
+from audio.model import Language
 from bluetooth.device_manager import BluetoothScanner, set_device_volume, connect_device
 from bluetooth.classes import Device
 import time, Adafruit_SSD1306, serial, logging

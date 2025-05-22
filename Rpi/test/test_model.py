@@ -1,6 +1,6 @@
 import serial, logging, hashlib
 from rpi.models import IResource
-from audio.classes import Language
+from audio.model import Language
 from PIL.Image import Image
 from pathlib import Path
 from bluetooth.classes import Device

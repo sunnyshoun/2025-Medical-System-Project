@@ -1,7 +1,7 @@
 import time
-from .classes import Language
-from .recognizer import Recognizer
-from .recorder import AudioRecorder
+from .model import Language
+from .recognizer import recognize
+from .recorder import audio_recorder
 from settings import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 
 
@@ -16,7 +16,7 @@ LANGUAGE_MODELS = {
 }
 
 
-def detect_language(recorder: AudioRecorder, timeout_seconds: float = 30.0) -> Language:
+def detect_language(timeout_seconds: float = 30.0) -> Language:
     language_keywords = {
         "中文": "zh-TW", "國語": "zh-TW",
         "English": "en", "英語": "en",
@@ -26,12 +26,12 @@ def detect_language(recorder: AudioRecorder, timeout_seconds: float = 30.0) -> L
     start_time = time.time()
 
     while time.time() - start_time < timeout_seconds:
-        wav_file = recorder.record_speech(max_duration=5.0)
+        wav_file = audio_recorder.record_speech(max_duration=5.0)
         if not wav_file:
             continue
 
         for lang in LANGUAGE_MODELS.values():
-            result = Recognizer(lang).recognize(wav_file)
+            result = recognize(wav_file, lang)
             if result and result != "<{silent}>":
                 print("aaaa result:", result)
                 for keyword, detected_code in language_keywords.items():

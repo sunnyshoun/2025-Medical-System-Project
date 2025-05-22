@@ -1,3 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SPEECH_API_TOKEN = os.getenv('SPEECH_API_TOKEN')
+SPEECH_API_URL = os.getenv('SPEECH_API_URL')
+
 RPI_LOOP_INTERVAL = 0.1  # in second
 RPI_SERIAL = {'port': '/dev/ttyS0'}
 RPI_START_DISTANCE = 0.1  # in meter

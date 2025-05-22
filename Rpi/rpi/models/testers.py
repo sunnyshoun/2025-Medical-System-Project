@@ -1,4 +1,4 @@
-from audio.classes import Language
+from audio.model import Language
 import serial
 from PIL.Image import Image
 from bluetooth.classes import Device
