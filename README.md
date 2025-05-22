@@ -156,13 +156,6 @@ Rpi/
 │   ├── config/                    # 配置相關模組
 │   │   ├── __init__.py
 │   │   ├── manager.py            # 將 config_manager.py 改名為 manager.py
-│   ├── assets/                   # 靜態資源（音訊檔案等）
-│   │   ├── audio/                # 將 audioFiles 改名為 audio
-│   │   │   ├── all/
-│   │   │   ├── en/
-│   │   │   ├── jp/
-│   │   │   ├── tw/
-│   │   │   ├── zh/
 │   ├── main.py                   # 程式入口
 ├── tests/                        # 測試目錄（將 test 改名為 tests，遵循慣例）
 │   ├── unit/                     # 單元測試

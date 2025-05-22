@@ -1,25 +1,44 @@
 # Entry of the app running on Raspberry Pi 3B+
 
 from rpi.menu import MainMenu
-from rpi.models import VisionTest, IResource
+from rpi.models import VisionTest
+from rpi.resource import Audio, Bluetooth, SttAPI
+from hardwares import Motor, Oled, Sonic, Button
 from rpi.tester import make_test
 from settings import *
 import logging, os, datetime
 
 
 if __name__ == '__main__':
-    from rpi.resource import Resource
-    res = Resource()
-    res.oled_clear()
-    res.oled_display()
     logging.getLogger('Adafruit_I2C.Device.Bus.1.Address.0X3C').setLevel(logging.WARNING)
-    
+
+    stt = SttAPI()
+    motor = Motor()
+    sonic = Sonic()
+    btn = Button()
+    oled = Oled()
+    audio = Audio()
+    bluetooth = Bluetooth()
+
     def start_func():
-        res.oled_clear()
-        res.oled_display()
-        test = VisionTest(res)
+        test = VisionTest(
+            motor=motor,
+            oled=oled,
+            sonic=sonic,
+            audio=audio,
+            stt=stt
+        )
         make_test(test)
-        res.read_btn()
+        btn.read_btn()
+        return MENU_STATE_ROOT
+    
+    menu = MainMenu(
+        start_func,
+        btn=btn,
+        oled=oled,
+        audio=audio,
+        bluetooth=bluetooth
+    )
 
     if not os.path.exists(LOG_FOLDER):
         os.mkdir(LOG_FOLDER)
@@ -32,17 +51,15 @@ if __name__ == '__main__':
             format=LOGGER_FORMAT,
             filemode='w',
             filename=f'{LOG_FOLDER}{log_name}.log'
-            )
+        )
     else:
         logging.basicConfig(
             level=LOGGER_LEVEL, 
             format=LOGGER_FORMAT
-            )
-
-    menu = MainMenu(start_func, res)
+        )
 
     try:
         while True:
             menu.loop()
-    except IndexError:
+    except Exception:
         pass

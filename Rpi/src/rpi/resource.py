@@ -1,5 +1,5 @@
 from settings import *
-from models import IAudio, IBluetooth, ISttAPI
+from .models import IAudio, IBluetooth, ISttAPI
 from audio.recognizer import recognize_direct
 from audio.language_detection import detect_language
 from audio.player import audio_player

@@ -1,7 +1,7 @@
 from .models import VisionTest, InterruptException
 from . import interrupts
 from settings import *
-from ..data import vision
+from data import vision
 import logging, time
 
 _LOGGER = logging.getLogger('TestingFlow')
@@ -9,6 +9,10 @@ _LOGGER.setLevel(LOGGER_LEVEL)
 
 def setup(t: VisionTest):
     _LOGGER.info('Setup section')
+
+    t.oled.clear()
+    t.oled.display()
+
     t.cur_degree = TEST_START_DEGREE
     t.cur_distance = -1.0
     
