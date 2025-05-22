@@ -29,7 +29,6 @@ class Resource(IResource):
 
         self.ser = serial.Serial(**RPI_SERIAL)
         self.bt_device = None
-
     
     def get_test_resp(self, lang: Language):
         recorder = AudioRecorder()

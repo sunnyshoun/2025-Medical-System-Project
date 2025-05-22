@@ -4,26 +4,26 @@ from settings import *
 from data import vision
 import logging, time
 
-logger = logging.getLogger('TestingFlow')
-logger.setLevel(LOGGER_LEVEL)
+_LOGGER = logging.getLogger('TestingFlow')
+_LOGGER.setLevel(LOGGER_LEVEL)
 
 def setup(t: VisionTest):
-    logger.info('Setup section')
+    _LOGGER.info('Setup section')
     t.cur_degree = TEST_START_DEGREE
     t.cur_distance = -1.0
     
     while t.cur_distance < 0:
         t.cur_distance = t.res.get_distance()
 
-    logger.info(f'Set cur_distance to {t.cur_distance}')
+    _LOGGER.info(f'Set cur_distance to {t.cur_distance}')
 
-    logger.debug('Choose language')
+    _LOGGER.debug('Choose language')
     t.lang = Interrupt.lang_resp(t)
     while t.lang == None:
         t.lang = Interrupt.lang_resp(t)
         time.sleep(1)
         
-    logger.info(f'Set language to: {t.lang.lang_code}')
+    _LOGGER.info(f'Set language to: {t.lang.lang_code}')
     t.res.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
 
 def loop(t: VisionTest):
@@ -32,8 +32,8 @@ def loop(t: VisionTest):
     _STATE_SHOW_IMG = 1
     _STATE_INPUT = 2
 
-    logger.info(f'--- Enter loop with state: {t.state} ---')
-    logger.info(f'cur_degree: {t.cur_degree}, cur_distance: {t.cur_distance}')
+    _LOGGER.info(f'--- Enter loop with state: {t.state} ---')
+    _LOGGER.info(f'cur_degree: {t.cur_degree}, cur_distance: {t.cur_distance}')
 
     if t.state == _STATE_SET_UP:
         if 0.1 <= t.cur_degree and t.cur_degree <= 1.5:
@@ -56,7 +56,7 @@ def loop(t: VisionTest):
 
     elif t.state == _STATE_SHOW_IMG:
         target = vision.distance[int(t.cur_degree * 10) - 1]
-        logger.debug(f'{abs(target - t.cur_distance)} m to target')
+        _LOGGER.debug(f'{abs(target - t.cur_distance)} m to target')
         if abs(target - t.cur_distance) < 0.001:
             # 不須移動
             t.state = _STATE_INPUT
@@ -95,7 +95,7 @@ def loop(t: VisionTest):
 
     
 def end(t: VisionTest):
-    logger.info('End section')
+    _LOGGER.info('End section')
     t.close()
 
 def make_test(vision_test_obj: VisionTest):
@@ -108,13 +108,13 @@ def make_test(vision_test_obj: VisionTest):
                 time.sleep(RPI_LOOP_INTERVAL)
 
             except InterruptException as ex:
-                logger.debug(f'Interrupt: {ex.args}, end: {ex.end}')
+                _LOGGER.debug(f'Interrupt: {ex.args}, end: {ex.end}')
                 Interrupt.sorter(ex)
                 if ex.end:
                     break
             
     except KeyboardInterrupt:
-        logger.info('Catch KeyboardInterrupt')
+        _LOGGER.info('Catch KeyboardInterrupt')
         
     finally:
         end(vision_test_obj)
