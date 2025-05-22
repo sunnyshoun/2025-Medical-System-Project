@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from setting import *
+from settings import *
 from .models import IResource
 from audio.recorder import AudioRecorder
 from audio.recognizer import Recognizer, recognize_direct
@@ -119,24 +119,3 @@ class Resource(IResource):
             return True
         return False
 
-    def set_volume(self, volume: int):
-        return set_device_volume(volume)
-    
-    def read_btn(self):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        btn_pins = [BTN_UP, BTN_CONFIRM, BTN_DOWN]
-
-        for pin in btn_pins:
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        try:
-            while True:
-                for pin in btn_pins:
-                    if not GPIO.input(pin):
-                        while not GPIO.input(pin):
-                            time.sleep(0.05)
-                        return pin
-                time.sleep(0.05)
-        finally:
-            GPIO.cleanup()

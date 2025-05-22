@@ -1,6 +1,6 @@
 from typing import Callable
 import logging
-from setting import *
+from settings import *
 from PIL.Image import Image, new
 from PIL import ImageDraw, ImageFont
 

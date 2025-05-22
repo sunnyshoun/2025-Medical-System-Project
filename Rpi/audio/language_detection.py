@@ -2,7 +2,7 @@ import time
 from .classes import Language
 from .recognizer import Recognizer
 from .recorder import AudioRecorder
-from setting import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
+from settings import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 
 
 LANGUAGE_MODELS = {

@@ -1,6 +1,6 @@
 from rpi.models import VisionTest
 from rpi.tester import make_test
-from setting import *
+from settings import *
 from test_model import ResourceDummy
 import logging, os
 

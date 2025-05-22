@@ -4,7 +4,7 @@ from .models import Menu, TextMenuElement, IconMenuElement, IResource, VisionTes
 from data.draw import draw_bluetooth_icon, draw_start_icon, draw_volume_icon, cross, check, draw_loading_frames
 from bluetooth.classes import Device
 from config_manager import get_config_value
-from setting import *
+from settings import *
 import logging
 from typing import Callable
 from PIL.Image import Image

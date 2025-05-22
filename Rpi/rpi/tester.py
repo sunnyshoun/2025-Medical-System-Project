@@ -1,6 +1,6 @@
 from rpi.models import VisionTest, InterruptException
 from rpi.interrupt import Interrupt
-from setting import *
+from settings import *
 from data import vision
 import logging, time
 

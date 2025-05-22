@@ -1,5 +1,5 @@
 from rpi.models import Menu, TextMenuElement
-from setting import *
+from settings import *
 import os, logging
 from rpi.menu import MainMenu
 from test_model import ResourceDummy

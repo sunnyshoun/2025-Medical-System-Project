@@ -3,7 +3,7 @@
 from rpi.menu import MainMenu
 from rpi.models import VisionTest, IResource
 from rpi.tester import make_test
-from setting import *
+from settings import *
 import logging, os, datetime
 
 

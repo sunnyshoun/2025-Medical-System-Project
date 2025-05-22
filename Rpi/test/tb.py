@@ -1,4 +1,4 @@
-from setting import *
+from settings import *
 
 RES_READ_BTN_YIELDING = [
     BTN_UP,
