@@ -1,7 +1,7 @@
-from rpi.models import VisionTest, InterruptException
-from rpi.interrupt import Interrupt
+from .models import VisionTest, InterruptException
+from . import interrupts
 from settings import *
-from data import vision
+from ..data import vision
 import logging, time
 
 _LOGGER = logging.getLogger('TestingFlow')
@@ -13,18 +13,18 @@ def setup(t: VisionTest):
     t.cur_distance = -1.0
     
     while t.cur_distance < 0:
-        t.cur_distance = t.res.get_distance()
+        t.cur_distance = t.sonic.get_distance()
 
     _LOGGER.info(f'Set cur_distance to {t.cur_distance}')
 
     _LOGGER.debug('Choose language')
-    t.lang = Interrupt.lang_resp(t)
+    t.lang = interrupts.lang_resp(t)
     while t.lang == None:
-        t.lang = Interrupt.lang_resp(t)
+        t.lang = interrupts.lang_resp(t)
         time.sleep(1)
         
     _LOGGER.info(f'Set language to: {t.lang.lang_code}')
-    t.res.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
+    t.audio.play_async(TEST_INTRO_FILE, LANGUAGES[t.lang.lang_code])
 
 def loop(t: VisionTest):
     # === define ===
@@ -96,7 +96,7 @@ def loop(t: VisionTest):
     
 def end(t: VisionTest):
     _LOGGER.info('End section')
-    t.close()
+    t.motor.close_serial()
 
 def make_test(vision_test_obj: VisionTest):
     try:
@@ -109,7 +109,7 @@ def make_test(vision_test_obj: VisionTest):
 
             except InterruptException as ex:
                 _LOGGER.debug(f'Interrupt: {ex.args}, end: {ex.end}')
-                Interrupt.sorter(ex)
+                interrupts.sorter(ex)
                 if ex.end:
                     break
             

@@ -1,81 +1,55 @@
-from audio.model import Language
-import serial
-from PIL.Image import Image
-from bluetooth.base import Device
-from config_manager import get_config_value
+from ....audio.model import Language
+from .resources import IMotor, IOled, ISonic, IAudio, ISttAPI
+    
+class VisionTestBase:
+    """
+    Providing hardwares and OS resources
+    """
+    motor: IMotor
+    oled: IOled
+    sonic: ISonic
+    audio: IAudio
+    stt: ISttAPI
 
-class IResource:
-    ser: serial.Serial
-    bt_device: Device
+    def __init__(
+            self,
+            motor: IMotor | None = None,
+            oled: IOled | None = None,
+            sonic: ISonic | None = None,
+            audio: IAudio | None = None,
+            stt: ISttAPI | None = None
+        ) -> None:
 
-    def __init__(self):
-        raise NotImplementedError('Calling the interface method `__init__()`')
+        self.motor = motor if motor is not None else IMotor()
+        self.oled = oled if oled is not None else IOled()
+        self.sonic = sonic if sonic is not None else ISonic()
+        self.audio = audio if audio is not None else IAudio()
+        self.stt = stt if stt is not None else ISttAPI()
     
-    def get_distance(self) -> float:
-        raise NotImplementedError('Calling the interface method `get_distance()`')
-    
-    def oled_display(self):
-        raise NotImplementedError('Calling the interface method `oled_display()`')
-    
-    def oled_clear(self):
-        raise NotImplementedError('Calling the interface method `oled_clear()`')
-
-    def oled_img(self, img: Image):
-        raise NotImplementedError('Calling the interface method `oled_img()`')
-    
-    def close():
-        raise NotImplementedError('Calling the interface method `close()`')
-
-    def get_test_resp(self, lang: int) -> int:
-        raise NotImplementedError('Calling the interface method `get_test_resp()`')
-
-    def get_lang_resp(self) -> Language:
-        raise NotImplementedError('Calling the interface method `get_lang_resp()`')
-    
-    def play_async(self, file_name: str, language: str, wait_time: int = 0):
-        raise NotImplementedError('Calling the interface method `play_async`')
-    
-    def list_bt_device(self) -> list[Device]:
-        raise NotImplementedError('Calling the interface method `list_bt_device`')
-    
-    def connect_bt_device(self, device: Device) -> bool:
-        raise NotImplementedError('Calling the interface method `connect_bt_device`')
-    
-    def set_volume(self, volume: int):
-        raise NotImplementedError('Calling the interface method `set_volume`')
-    
-    def get_volume(self) -> int:
-        return get_config_value('VOLUME')
-    
-    def read_btn(self) -> int:
-        raise NotImplementedError('Calling the interface method `read_btn`')
-    
-class VisionTest:
+class VisionTest(VisionTestBase):
     cur_distance: float
     cur_degree: float
     max_degree: float
     state: int
     dir: int
     lang: Language
-    res: IResource
 
-    got_resp: bool
+    got_resp: bool | None
 
-    def __init__(self, res: IResource):
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
         self.max_degree = -1.0
         self.state = 0
 
         self.got_resp = None
         self.dir = 0
-        self.res = res
-
-    def close(self ):
-        self.res.close()
     
 class InterruptException(Exception):
     end: bool
     test: VisionTest
-    def __init__(self, *args, end: bool, test: VisionTest = None):
+    def __init__(self, *args, end: bool, test: VisionTest):
         super().__init__(*args)
         self.end = end
         self.test = test

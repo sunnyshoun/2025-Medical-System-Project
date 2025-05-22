@@ -1,13 +1,19 @@
 from PIL.Image import Image
-import Adafruit_SSD1306
+from rpi.models import IOled
+import Adafruit_SSD1306, logging
 
 _DISP = Adafruit_SSD1306.SSD1306_128_64(rst=None)
-    
-def oled_display():
-    _DISP.display()
+_LOGGER = logging.getLogger('Oled')
 
-def oled_clear():
-    _DISP.clear()
+class Oled(IOled):
+    def display(self) -> None:
+        _LOGGER.debug('display')
+        _DISP.display()
 
-def oled_img(img: Image):
-    _DISP.image(img.convert('1'))
+    def clear(self) -> None:
+        _LOGGER.debug('clear')
+        _DISP.clear()
+
+    def set_img(self, img: Image) -> None:
+        _LOGGER.debug('set_img')
+        _DISP.image(img.convert('1'))

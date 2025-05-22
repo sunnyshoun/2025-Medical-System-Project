@@ -38,8 +38,8 @@ RESULT_STRS = [
     'Your vision: ',
     'あなたの視力: '
 ]
-RESULT_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 20}
-MENU_FONT = {'font': './data/NotoSansCJK-Regular.ttc', 'size': 15}
+RESULT_FONT = {'font': './src/data/NotoSansCJK-Regular.ttc', 'size': 20}
+MENU_FONT = {'font': './src/data/NotoSansCJK-Regular.ttc', 'size': 15}
 MENU_MAX_TEXT_LEN = 14
 MENU_TEXT_HEIGHT = 20
  
