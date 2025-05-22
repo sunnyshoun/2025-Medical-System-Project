@@ -3,7 +3,7 @@ from rpi.models import IResource
 from audio.model import Language
 from PIL.Image import Image
 from pathlib import Path
-from bluetooth.classes import Device
+from bluetooth.base import Device
 from tb import *
 
 class SerialDummy(serial.Serial):

@@ -5,7 +5,7 @@ import subprocess
 from typing import List
 from pulsectl import Pulse, PulseError
 from config_manager import load_config, save_config
-from .classes import Device
+from .base import Device
 
 logger = logging.getLogger('deviceManager')
 
@@ -104,6 +104,11 @@ class BluetoothScanner:
         except Exception as e:
             logger.error(f"Failed to stop Bluetooth scan: {e}")
             raise BluetoothStopError(f"Bluetooth scan stop failed: {e}")
+
+bt_scanner = BluetoothScanner()
+
+def list_devices() -> List[Device]:
+    return bt_scanner.list_devices()
 
 def verify_profile(card_name: str, expected_profile: str) -> bool:
     """驗證當前 profile 是否匹配預期"""

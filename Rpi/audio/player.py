@@ -6,7 +6,7 @@ class AudioPlayer:
         self.base_folder = os.path.join(os.path.dirname(__file__), "audioFiles")
         self.process = None
 
-    def play_async(self, file_name: str, language: str, wait_time: int = 0):
+    def play_async(self, file_name: str, language: str):
         """
         非同步播放指定語言資料夾下的音訊檔案。
         :param file_name: 音訊檔名 (e.g. hello.wav)

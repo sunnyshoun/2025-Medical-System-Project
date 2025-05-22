@@ -1,7 +1,7 @@
 from audio.model import Language
 import serial
 from PIL.Image import Image
-from bluetooth.classes import Device
+from bluetooth.base import Device
 from config_manager import get_config_value
 
 class IResource:

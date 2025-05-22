@@ -2,7 +2,7 @@ import time
 import threading
 from .models import Menu, TextMenuElement, IconMenuElement, IResource, VisionTest
 from data.draw import draw_bluetooth_icon, draw_start_icon, draw_volume_icon, cross, check, draw_loading_frames
-from bluetooth.classes import Device
+from bluetooth.base import Device
 from config_manager import get_config_value
 from settings import *
 import logging
