@@ -7,7 +7,6 @@ from typing import Optional
 import contextlib
 import sys
 import ctypes
-from config_manager import load_config
 
 @contextlib.contextmanager
 def suppress_alsa_errors():
@@ -32,11 +31,6 @@ def suppress_alsa_errors():
 
 class AudioRecorder:
     def __init__(self, rate: int = 16000, frame_duration: int = 30, vad_mode: int = 3):
-        config = load_config()
-        self.headphone_mac = config.get('HEADPHONE_DEVICE_MAC')
-        if not self.headphone_mac:
-            raise ValueError("HEADPHONE_DEVICE_MAC not found in config")
-
         self.rate = rate
         self.frame_duration = frame_duration
         self.frame_size = int(rate * frame_duration / 1000)
@@ -55,7 +49,7 @@ class AudioRecorder:
                 input_device_index=self.audio_interface.get_default_input_device_info().get('index'),
                 frames_per_buffer=self.frame_size
             )
-
+    
     def start(self):
         if not self.stream.is_active():
             self.stream.start_stream()
