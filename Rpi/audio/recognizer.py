@@ -30,7 +30,8 @@ class Recognizer:
         return "<{silent}>"
 
 
-def recognize_direct(recorder, recognizer: Recognizer):
+def recognize_direct(recorder, recognizer: Recognizer) -> int:
+    """return direct_code:int"""
     while True:
         wav_file = recorder.record_speech()
         if not wav_file:
