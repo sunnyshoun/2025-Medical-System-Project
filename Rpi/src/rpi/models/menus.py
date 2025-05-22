@@ -1,15 +1,38 @@
-from typing import Callable
+from typing import Callable, Sequence
 import logging
 from settings import *
 from PIL.Image import Image, new
 from PIL import ImageDraw, ImageFont
+from .resources import IButton, IOled, IAudio, IBluetooth
+
+class MenuBase:
+    """
+    Providing hardwares and OS resources
+    """
+    btn: IButton
+    oled: IOled
+    audio: IAudio
+    bluetooth: IBluetooth
+
+    def __init__(
+            self,
+            btn: IButton | None = None,
+            oled: IOled | None = None,
+            audio: IAudio | None = None,
+            bluetooth: IBluetooth | None = None
+        ) -> None:
+
+        self.btn = btn if btn is not None else IButton()
+        self.oled = oled if oled is not None else IOled()
+        self.audio = audio if audio is not None else IAudio()
+        self.bluetooth = bluetooth if bluetooth is not None else IBluetooth()
 
 class MenuElement:
     img: Image
     title: str
     call_back: Callable[[], int]
 
-    def __init__(self, img: Image, call_back: Callable[[], int], title=None):
+    def __init__(self, img: Image, call_back: Callable[[], int], title=''):
         self.img = img
         self.call_back = call_back
         self.title = title
@@ -20,12 +43,12 @@ class MenuElement:
 class Menu:
     select_index: int
     hide_arrow: bool
-    item_list: list[MenuElement]
+    item_list: Sequence[MenuElement]
     item_height: int
     logger = logging.getLogger('Menu')
     logger.setLevel(LOGGER_LEVEL)
 
-    def __init__(self, item_list: list[MenuElement], item_height: int):
+    def __init__(self, item_list: Sequence[MenuElement], item_height: int):
         self.hide_arrow = False
         self.select_index = 0
         self.item_list = item_list
@@ -139,7 +162,7 @@ class TextMenuElement(MenuElement):
 
         return img
     
-    def __eq__(self, value: str):
+    def __eq__(self, value: object):
         return self.title.__eq__(value)
     
 class IconMenuElement(MenuElement):
