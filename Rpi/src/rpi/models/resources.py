@@ -8,6 +8,8 @@ class IButton:
         raise NotImplementedError('Calling the interface method `read_btn`')
 
 class IMotor:
+    def open_serial(self) -> None:
+        raise NotImplementedError('Calling the interface method `open_serial()`')
     def close_serial(self) -> None:
         raise NotImplementedError('Calling the interface method `close_serial()`')
     def write(self, msg: bytes) -> int | None:

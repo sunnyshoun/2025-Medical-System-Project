@@ -57,9 +57,6 @@ if __name__ == '__main__':
             level=LOGGER_LEVEL, 
             format=LOGGER_FORMAT
         )
-
-    try:
-        while True:
-            menu.loop()
-    except Exception:
-        pass
+    
+    while True:
+        menu.loop()

@@ -7,9 +7,15 @@ _SERIAL = Serial(**RPI_SERIAL)
 _LOGGER = logging.getLogger('Motor')
 
 class Motor(IMotor):
+    def open_serial(self) -> None:
+        if not _SERIAL.is_open:
+            _LOGGER.debug('Open serial')
+            _SERIAL.open()
+    
     def close_serial(self) -> None:
-        _LOGGER.debug('Close serial')
-        _SERIAL.close()
+        if _SERIAL.is_open:
+            _LOGGER.debug('Close serial')
+            _SERIAL.close()
 
     def write(self, msg: bytes) -> int | None:
         _LOGGER.debug(f'Write {msg}')

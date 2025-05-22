@@ -4,7 +4,6 @@ from .recognizer import recognize
 from .recorder import audio_recorder
 from settings import LANG_JP, LANG_EN, LANG_ZH, LANG_TW
 
-
 LANGUAGE_MODELS = {
     "ja": Language(LANG_JP, "Japanese", {"うえ": 1, "上": 1, "した": 3, "下": 3, "左": 2, "右": 0, "みぎ": 0}),
     "en": Language(LANG_EN, "English", {"up": 1, "down": 3, "left": 2, "right": 0}),
@@ -33,7 +32,6 @@ def detect_language(timeout_seconds: float = 30.0) -> Language:
         for lang in LANGUAGE_MODELS.values():
             result = recognize(wav_file, lang)
             if result and result != "<{silent}>":
-                print("aaaa result:", result)
                 for keyword, detected_code in language_keywords.items():
                     if keyword in result:
                         return LANGUAGE_MODELS[detected_code]

@@ -1,6 +1,6 @@
 from PIL.Image import Image
 from rpi.models import IOled
-import Adafruit_SSD1306, logging
+import Adafruit_SSD1306, logging, time
 
 _DISP = Adafruit_SSD1306.SSD1306_128_64(rst=None)
 _LOGGER = logging.getLogger('Oled')
@@ -8,7 +8,12 @@ _LOGGER = logging.getLogger('Oled')
 class Oled(IOled):
     def display(self) -> None:
         _LOGGER.debug('display')
-        _DISP.display()
+        while True:
+            try:
+                _DISP.display()
+                break
+            except:
+                time.sleep(0.5)
 
     def clear(self) -> None:
         _LOGGER.debug('clear')

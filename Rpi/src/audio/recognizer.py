@@ -1,10 +1,13 @@
 import time
 import base64
+import logging
 import requests
 from typing import Optional
 from settings import SPEECH_API_TOKEN, SPEECH_API_URL
 from .model import Language
 from .recorder import audio_recorder
+
+logger = logging.getLogger("recognizer")
 
 def recognize(wav_path: str, language: Language) -> Optional[str]:
         with open(wav_path, 'rb') as f:
@@ -15,14 +18,18 @@ def recognize(wav_path: str, language: Language) -> Optional[str]:
             'audio': audio_base64
         }
 
+        detect_text = "<{silent}>"
         for _ in range(3):
             try:
                 response = requests.post(SPEECH_API_URL, data=payload, timeout=10)
                 if response.status_code == 200:
-                    return response.json().get('sentence', "<{silent}>")
+                    detect_text = response.json().get('sentence', "<{silent}>")
+                    logging.debug(f"detect_text: {detect_text}")
+                    return detect_text
             except requests.RequestException:
                 time.sleep(1)
-        return "<{silent}>"
+        logging.debug(f"detect_text: {detect_text}")
+        return detect_text
 
 def recognize_direct(language: Language) -> int:
     """return direct_code:int"""

@@ -10,6 +10,8 @@ _LOGGER.setLevel(LOGGER_LEVEL)
 def setup(t: VisionTest):
     _LOGGER.info('Setup section')
 
+    t.motor.open_serial()
+
     t.oled.clear()
     t.oled.display()
 

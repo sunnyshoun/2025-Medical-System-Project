@@ -2,8 +2,8 @@ from .models import InterruptException, VisionTest
 from audio.model import Language
 from audio.player import audio_player
 from settings import *
-from ..data import vision
-from ..data.draw import draw_circle_with_right_opening, paste_square_image_centered
+from data import vision
+from data.draw import draw_circle_with_right_opening, paste_square_image_centered
 from PIL.Image import Image, new
 from PIL import ImageDraw, ImageFont
 import logging, random
