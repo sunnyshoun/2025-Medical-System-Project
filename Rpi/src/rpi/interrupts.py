@@ -1,5 +1,5 @@
 from .models import InterruptException, VisionTest
-from audio.classes import Language
+from audio.model import Language
 from audio.player import audio_player
 from settings import *
 from ..data import vision

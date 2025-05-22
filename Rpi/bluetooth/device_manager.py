@@ -5,7 +5,7 @@ import subprocess
 from typing import List
 from pulsectl import Pulse, PulseError
 from config_manager import load_config, save_config
-from .base import Device
+from .model import Device
 
 logger = logging.getLogger('deviceManager')
 

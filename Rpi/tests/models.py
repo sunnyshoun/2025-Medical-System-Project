@@ -2,7 +2,7 @@ import logging, hashlib
 from audio.model import Language
 from PIL.Image import Image
 from pathlib import Path
-from bluetooth.base import Device
+from bluetooth.model import Device
 from src.rpi.models import IMotor, IOled, ISonic, IAudio, IBluetooth, ISttAPI, IButton
 from tb import *
 

@@ -1,4 +1,4 @@
-from ....audio.model import Language
+from audio.model import Language
 from .resources import IMotor, IOled, ISonic, IAudio, ISttAPI
     
 class VisionTestBase:
