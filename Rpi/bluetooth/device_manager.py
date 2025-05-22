@@ -122,7 +122,6 @@ def verify_profile(card_name: str, expected_profile: str) -> bool:
 
 def connect_device(device: Device) -> bool:
     """連線設備、設定 HFP、設為預設輸入/輸出、應用音量並更新 config"""
-    config = load_config()
     dev_path = f"/org/bluez/hci0/dev_{device.mac_address}"
 
     # 步驟 1: 配對並連線設備
@@ -134,10 +133,10 @@ def connect_device(device: Device) -> bool:
 
         if not props_iface.Get('org.bluez.Device1', 'Paired'):
             dev_iface.Pair(timeout=30000)
-        if not props_iface.Get('org.bluez.Device1', 'Connected'):
-            dev_iface.Connect(timeout=30000)
+        dev_iface.Connect(timeout=30000)
         
-        time.sleep(0.5)  # 短暫等待連線穩定
+        time.sleep(2)
+        
         if not props_iface.Get('org.bluez.Device1', 'Connected'):
             logger.error(f"設備 {device.device_name} 未連線")
             return False
@@ -150,25 +149,21 @@ def connect_device(device: Device) -> bool:
         with Pulse('bluetooth-audio') as pulse:
             card_name = f"bluez_card.{device.mac_address}"
             card = None
-            for _ in range(3):
+            for _ in range(10):
                 try:
                     card = pulse.get_card_by_name(card_name)
                     break
                 except PulseError:
                     time.sleep(0.5)
             if not card:
-                config["HEADPHONE_DEVICE_MAC"] = device.mac_address
-                save_config(config)
-                return True
+                return False
             
             hfp_profile = next(
                 (p for p in card.profile_list if any(term in p.name.lower() for term in ["headset", "handsfree"])),
                 None
             )
             if not hfp_profile:
-                config["HEADPHONE_DEVICE_MAC"] = device.mac_address
-                save_config(config)
-                return True
+                return False
             
             pulse.card_profile_set(card, hfp_profile)
             time.sleep(1)
@@ -198,6 +193,7 @@ def connect_device(device: Device) -> bool:
         return False
 
     # 步驟 3: 更新 config
+    config = load_config()
     config["HEADPHONE_DEVICE_MAC"] = device.mac_address
     save_config(config)
 
